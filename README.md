@@ -1,6 +1,6 @@
 # 🗽 CurbWatch
 
-**An agentic vision system that turns NYC's 965 public traffic cameras into
+**An agentic vision system that turns NYC's 963 live public traffic cameras into
 enforcement-grade witnesses for blocked bike and bus lanes — evidence-quality reports,
 human sign-off, any language.**
 
@@ -10,7 +10,7 @@ Built in one evening at [AI Tinkerers NYC — Vision Hack v.2](https://nyc.aitin
 **Live demo:** https://curbwatch-631243785209.us-central1.run.app
 **▶ [3-minute demo script](DEMO.md)** · **[Submission writeup](SUBMISSION.md)** — concept, impact, tools.
 
-![All 965 DOT cameras over NYC's bike-lane network](docs/screenshots/map-bikelanes.png)
+![All 963 DOT cameras over NYC's bike-lane network](docs/screenshots/map-bikelanes.png)
 
 ![Watch mode on a live DOT frame — truck detected in the traced lane with dwell timer](docs/screenshots/state3-live.png)
 
@@ -30,7 +30,7 @@ Blocked bike and bus lanes are one of NYC's highest-volume, lowest-enforcement f
   lanes, and congestion costs the region an estimated **$20B a year**
   ([Partnership for NYC](https://pfnyc.org/)).
 
-Meanwhile the city **already owns 965 public traffic cameras pointed at these exact
+Meanwhile the city **already owns 963 live public traffic cameras pointed at these exact
 lanes**, refreshing every few seconds — an enforcement sensor network with zero
 marginal hardware cost that today is only used for looking, not acting.
 
@@ -90,7 +90,7 @@ already owns.**
 ## Three features, nothing more
 
 1. **Pick a camera, trace the lane** — every DOT camera on a dark city map, laid over
-   **NYC's entire bike-lane network** (NYC Open Data, 29,695 segments) so you can see
+   **NYC's entire bike-lane network** (NYC Open Data, 29,682 segments) so you can see
    which cameras actually watch a protected lane. Search, borough fly-to, then draw the
    lane zone once on the live frame.
 2. **Watch it** — CurbWatch polls a frame every 3 s, runs object detection, and tracks each
@@ -119,7 +119,7 @@ request or keep as a FOIL-friendly record.
 ```mermaid
 flowchart LR
     subgraph NYC["🗽 NYC DOT"]
-        CAM[965 public traffic cameras<br/>fresh JPEG every ~2s]
+        CAM[963 public traffic cameras<br/>fresh JPEG every ~2s]
     end
 
     subgraph CR["☁️ Google Cloud Run — single container"]
@@ -186,7 +186,7 @@ mode and keep every key server-side — the browser never talks to Roboflow or G
 ## Staying frugal (limited inference credits)
 
 - Inference is **on-demand only** — frames are analyzed only while someone is actively
-  watching a lane, at 1 frame / 3 s. No background polling of 965 cameras.
+  watching a lane, at 1 frame / 3 s. No background polling of 963 cameras.
 - A server-side **credit guard** hard-caps total Roboflow calls (`MAX_INFERENCE_CALLS`,
   429 when exhausted) — replay mode is exempt.
 - **Replay mode** serves 12 committed frames + cached detections — a zero-credit demo
@@ -243,7 +243,7 @@ the Dockerfile, and prints the service URL.
 
 ## A tour in screenshots
 
-**1 — Pick a camera.** 965 taxi-yellow dots on a dark OSM map; search filters live,
+**1 — Pick a camera.** 963 taxi-yellow dots on a dark OSM map; search filters live,
 borough chips fly the map there. (List view: one toggle.)
 
 | ![Map picker](docs/screenshots/map-picker.png) | ![Borough flyTo — Brooklyn](docs/screenshots/map-brooklyn.png) |
