@@ -301,6 +301,7 @@ api.post("/analyze", async (c) => {
   const minConf = defaultMinTrackConfidence();
   const responseDetections = [
     ...result.all.map((t) => ({
+      trackId: t.id,
       class: t.class,
       confidence: t.confidence,
       box: t.box,
@@ -311,6 +312,7 @@ api.post("/analyze", async (c) => {
     ...detections
       .filter((d) => VEHICLE_CLASSES.has(d.class) && d.confidence < minConf)
       .map((d) => ({
+        trackId: null,
         class: d.class,
         confidence: d.confidence,
         box: d.box,
@@ -321,6 +323,7 @@ api.post("/analyze", async (c) => {
     ...detections
       .filter((d) => d.class === "person")
       .map((d) => ({
+        trackId: null,
         class: d.class,
         confidence: d.confidence,
         box: d.box,
