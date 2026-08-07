@@ -8,7 +8,7 @@ Built in one evening at [AI Tinkerers NYC — Vision Hack v.2](https://nyc.aitin
 (Aug 7, 2026). Live on **Google Cloud Run**. Detection by **Roboflow**. Reasoning by **Gemini**.
 
 **Live demo:** https://curbwatch-631243785209.us-central1.run.app
-**▶ [3-minute demo script](DEMO.md)** — narrated, step by step, with edge-case fallbacks.
+**▶ [3-minute demo script](DEMO.md)** · **[Submission writeup](SUBMISSION.md)** — concept, impact, tools.
 
 ![All 965 DOT cameras over NYC's bike-lane network](docs/screenshots/map-bikelanes.png)
 
@@ -33,6 +33,46 @@ Blocked bike and bus lanes are one of NYC's highest-volume, lowest-enforcement f
 Meanwhile the city **already owns 965 public traffic cameras pointed at these exact
 lanes**, refreshing every few seconds — an enforcement sensor network with zero
 marginal hardware cost that today is only used for looking, not acting.
+
+## What you actually get out of it
+
+**The output is an evidence bundle** — one timestamped JSON file, downloaded when a human
+approves a verdict. It contains:
+
+```
+camera id + name + lat/lng + borough      ← where, precisely
+the keyframe (JPEG, base64)               ← what it looked like
+grounded report (any language + English)  ← what happened, in words
+dwell timeline per tracked vehicle        ← how long, per vehicle
+human decision (approved / edited)        ← who signed off
+full JSONL agent trace                    ← how the AI reached it
+```
+
+That file is the thing 311 can act on, an advocate can attach to testimony, and a
+researcher can aggregate. **Today that artifact does not exist** — a 311 complaint is a
+text box and a timestamp, with the vehicle long gone.
+
+### Impact, measured on our own deployment
+
+| | Today | With CurbWatch | Source |
+|---|---|---|---|
+| Time to verify one complaint | Hours (dispatch), usually too late | **~90 seconds**, remotely | measured: 0.5–1.3 s per analyzed frame, 1.2 s per report |
+| Cost per verified complaint | A physical inspection trip | **≈ $0.03** | 20 frames × ~$0.0012 (Roboflow: 1 credit ≈ 5,000 frames at our 0.1 s inference) + < $0.001 Gemini Flash-Lite + Cloud Run scale-to-zero |
+| Evidence produced | None (vehicle gone) | **1 signed bundle** with keyframe + dwell timeline + audit trail | the artifact above |
+| Locations coverable | Where an officer is | **963 live cameras**: 374 Manhattan · 207 Queens · 206 Brooklyn · 98 Staten Island · 78 Bronx | live `/api/cameras`, counted at demo time |
+| Lane context | Officer's judgment | **29,682 bike-lane segments** overlaid from NYC Open Data | `public/data/bike-routes.geojson` |
+| Cost to sweep every camera once | Not feasible | **≈ $29** total, fully parallel | 963 × $0.03 |
+
+The load-bearing number is the last one: **checking every traffic camera in New York City
+for lane blockage costs about the price of lunch.** That is what changes enforcement from
+"respond to complaints" to "know where the chronic blockages are."
+
+Scale context (public figures, orders of magnitude — not our measurements): NYC 311 takes
+**over a million illegal-parking complaints a year**, tens of thousands of them blocked
+bike lanes; roughly **30 cyclists are killed** annually
+([Vision Zero](https://www.nyc.gov/site/visionzero/index.page)); buses average about
+**8 mph**. CurbWatch does not fix those numbers by itself — it makes the evidence to act
+on them cost three cents instead of a dispatch.
 
 ## Who it's for
 
