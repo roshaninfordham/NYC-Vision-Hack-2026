@@ -6,6 +6,15 @@ REGION="${REGION:-us-central1}"
 SERVICE="${SERVICE:-curbwatch}"
 PROJECT="$(gcloud config get-value project 2>/dev/null)"
 
+# Fresh projects: Cloud Build runs as the compute default SA, which lacks
+# permission to read uploaded sources until granted the builds.builder role.
+PROJECT_NUMBER="$(gcloud projects describe "$PROJECT" --format='value(projectNumber)')"
+echo "Ensuring Cloud Build permissions for ${PROJECT_NUMBER}-compute@developer.gserviceaccount.com..."
+gcloud projects add-iam-policy-binding "$PROJECT" \
+  --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
+  --role="roles/cloudbuild.builds.builder" \
+  --condition=None --quiet >/dev/null || echo "  (grant failed — continuing; deploy may still work)"
+
 echo "Deploying $SERVICE to project $PROJECT in $REGION..."
 
 gcloud run deploy "$SERVICE" \
