@@ -8,6 +8,8 @@ Built in one evening at [AI Tinkerers NYC — Vision Hack v.2](https://nyc.aitin
 
 **Live demo:** https://curbwatch-631243785209.us-central1.run.app
 
+![All 965 DOT cameras on a dark city map](docs/screenshots/landing-map.png)
+
 ![Watch mode on a live DOT frame — truck detected in the traced lane with dwell timer](docs/screenshots/state3-live.png)
 
 ## The problem
@@ -19,15 +21,18 @@ CurbWatch turns any one of them into a lane-blockage witness.
 
 ## Three features, nothing more
 
-1. **Pick a camera, trace the lane** — search all online DOT cameras, filter by borough,
-   then draw the lane zone once as a polygon on the live frame.
+1. **Pick a camera, trace the lane** — every DOT camera on a dark city map (search,
+   borough fly-to; list view one toggle away), then draw the lane zone once as a
+   polygon on the live frame.
 2. **Watch it** — CurbWatch polls a frame every 3 s, runs object detection, and tracks each
    vehicle across frames (IoU matching). A vehicle whose footprint sits inside your zone
    for ≥3 consecutive frames is **blocking**; one passing through is ignored.
-3. **Ask the agent** — a Gemini-powered agent turns the detection timeline into a
-   311-style report (with human **approve / edit / discard** sign-off), and answers
-   free-form questions ("is there a camera on Canal St?", "what's the lane status?")
-   by choosing its own tools.
+3. **Ask the agent — in any language** — a Gemini-powered agent answers free-form
+   questions ("is there a camera at Times Square?", "¿está bloqueado el carril?") by
+   choosing its own tools, with press-to-talk voice in/out. Reports are **grounded**:
+   Gemini *sees the actual frame*, cross-checks the detector's labels against the image,
+   corrects mislabels, and writes an evidence-quality 311-style report in your language
+   (English appended for filing) — with human **approve / edit / discard** sign-off.
 
 Every LLM call, tool call, verdict, and human decision is appended to a **JSONL trace**
 (`trace/agent-trace.jsonl`), viewable and downloadable in-app — the raw material for
@@ -122,8 +127,23 @@ replay fallback, credit guard.
 **Caveats:** some DOT cameras pan/rotate on a schedule, so a traced zone can drift off
 the lane — retrace or pick a fixed camera (the demo camera is stable). Sessions and
 traces are in-memory/ephemeral on Cloud Run; persistence would be a GCS bucket away.
-Detection on 352×240 frames misses small/distant vehicles at night. The tracker is
-IoU-greedy — fine for a lane, not for dense multi-object crossings.
+Detection on 352×240 frames is imperfect (small/distant vehicles, night) — which is
+exactly why reports are grounded: Gemini sees the frame and corrects the detector
+before anything reaches a human. The tracker is IoU-greedy — fine for a lane, not for
+dense multi-object crossings.
+
+## Demo script (~90 seconds)
+
+1. Open the live URL → the map. "Every dot is a real NYC DOT camera, right now."
+2. Search "Central Park West @ 86" → live frame appears → trace the bike lane in 4 clicks.
+3. Start watching → detections overlay within 3 s; if a vehicle sits in the zone the
+   banner escalates CLEAR → VEHICLE IN LANE → LANE BLOCKED with a dwell timer.
+4. "Get agent verdict" → grounded Gemini report citing what's actually in the picture →
+   click **Approve** (the human-in-the-loop stamp).
+5. Ask the agent *in Spanish* (or by voice): "¿Hay alguna cámara en Times Square?" —
+   it translates the landmark to cross-streets and answers in Spanish.
+6. Open the **Agent trace** drawer: every LLM/tool/human step as JSONL. If a camera
+   dies on stage: flip **Replay mode** — zero-credit committed frames, same pipeline.
 
 ## Running it
 
@@ -145,12 +165,30 @@ ROBOFLOW_API_KEY=xxx GEMINI_API_KEY=xxx ./deploy.sh
 The script auto-grants the Cloud Build role that fresh projects are missing, builds from
 the Dockerfile, and prints the service URL.
 
-## Screenshots
+## A tour in screenshots
 
-| | |
+**1 — Pick a camera.** 965 taxi-yellow dots on a dark OSM map; search filters live,
+borough chips fly the map there. (List view: one toggle.)
+
+| ![Map picker](docs/screenshots/map-picker.png) | ![Borough flyTo — Brooklyn](docs/screenshots/map-brooklyn.png) |
 |---|---|
-| ![Camera picker](docs/screenshots/state1-list.png) | ![Lane tracing on a live frame](docs/screenshots/state2-live.png) |
-| ![Agent chat + approved stamp](docs/screenshots/feat-chat-stamp.png) | ![JSONL agent trace drawer](docs/screenshots/feat-trace.png) |
+
+**2 — Trace the lane on a live frame, then watch.** The truck below is real — detected
+on Central Park West with its dwell timer, inside the traced zone.
+
+| ![Lane tracing on a live frame](docs/screenshots/state2-live.png) | ![Live watch — truck in zone](docs/screenshots/state3-live.png) |
+|---|---|
+
+**3 — Ask the agent, sign off the report.** Voice or text, any language; the report is
+grounded in the actual frame and stamped by a human before it goes anywhere.
+
+| ![Multilingual voice chat](docs/screenshots/voice-chat.png) | ![Agent chat + approved stamp](docs/screenshots/feat-chat-stamp.png) |
+|---|---|
+
+**4 — Every agent step is auditable.** The JSONL trace drawer shows each LLM call,
+tool call, verdict, and human decision — downloadable for offline evaluation.
+
+![JSONL agent trace drawer](docs/screenshots/feat-trace.png)
 
 ## Privacy
 
