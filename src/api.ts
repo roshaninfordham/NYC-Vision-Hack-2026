@@ -5,16 +5,27 @@ import {
   LaneTracker,
   type Polygon,
   type RoboflowResult,
+  type UpdateResult,
   buildReportPrompt,
   denormalize,
   detect,
   fallbackReport,
 } from "./core/index.js";
+import { generateContent, hasGeminiCredentials } from "./core/gemini.js";
+import {
+  type AgentTools,
+  runAgentLoop,
+} from "./agent/loop.js";
+import { readTrace, trace } from "./trace.js";
 
 export const api = new Hono();
 
 api.get("/status", (c) =>
-  c.json({ ok: true, version: "0.1.0", features: ["cameras", "analyze", "report"] })
+  c.json({
+    ok: true,
+    version: "0.1.0",
+    features: ["cameras", "analyze", "report", "agent", "trace"],
+  })
 );
 
 // ---------------------------------------------------------------------------
@@ -45,6 +56,8 @@ interface Session {
   cameraId: string;
   cameraName: string;
   frames: number;
+  lastStatus: "clear" | "warning" | "blocked" | null;
+  lastResult: UpdateResult | null;
 }
 
 const sessions = new Map<string, Session>();
@@ -180,6 +193,13 @@ api.post("/analyze", async (c) => {
     );
   }
 
+  await trace({
+    sessionId,
+    type: "tool_call",
+    tool: "analyze",
+    args: { cameraId, replay: Boolean(replay), zonePoints: zone.length },
+  });
+
   let session = sessions.get(sessionId);
   if (!session || session.cameraId !== cameraId) {
     session = {
@@ -188,6 +208,8 @@ api.post("/analyze", async (c) => {
       cameraId,
       cameraName: replay ? cameraId : await cameraName(cameraId),
       frames: 0,
+      lastStatus: null,
+      lastResult: null,
     };
     sessions.set(sessionId, session);
   }
@@ -255,6 +277,15 @@ api.post("/analyze", async (c) => {
       : result.inZone.length > 0
         ? "warning"
         : "clear";
+  session.lastStatus = status;
+  session.lastResult = result;
+
+  await trace({
+    sessionId,
+    type: "tool_result",
+    tool: "analyze",
+    resultSummary: `status=${status} vehicles=${result.all.length} inZone=${result.inZone.length} blocking=${result.blocking.length} persons=${personCount} replay=${Boolean(replay)}`,
+  });
 
   const responseDetections = [
     ...result.all.map((t) => ({
@@ -289,58 +320,25 @@ api.post("/analyze", async (c) => {
 });
 
 // ---------------------------------------------------------------------------
-// POST /api/report — agent verdict (Gemini → Vertex → templated fallback).
+// Reports — Gemini (key or Vertex identity) with templated fallback.
 // ---------------------------------------------------------------------------
 
-interface GeminiResponse {
-  candidates?: { content?: { parts?: { text?: string }[] } }[];
-}
-
-function extractGeminiText(json: GeminiResponse): string {
-  const text = (json.candidates?.[0]?.content?.parts ?? [])
-    .map((p) => p.text ?? "")
-    .join("")
-    .trim();
-  if (!text) throw new Error("empty Gemini response");
-  return text;
-}
-
-async function callGemini(prompt: string, key: string): Promise<string> {
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(key)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-      signal: AbortSignal.timeout(30_000),
+async function sessionReport(
+  session: Session
+): Promise<{ report: string; source: "gemini" | "vertex" | "fallback" }> {
+  const timeline = session.tracker.timeline();
+  const prompt = buildReportPrompt(timeline, session.cameraName);
+  try {
+    if (hasGeminiCredentials()) {
+      const res = await generateContent([
+        { role: "user", parts: [{ text: prompt }] },
+      ]);
+      if (res.text) return { report: res.text, source: res.source };
     }
-  );
-  if (!res.ok) throw new Error(`Gemini ${res.status}`);
-  return extractGeminiText((await res.json()) as GeminiResponse);
-}
-
-async function callVertex(prompt: string, project: string): Promise<string> {
-  // ADC via the Cloud Run / GCE metadata server — no key in the container.
-  const tokenRes = await fetch(
-    "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token",
-    { headers: { "Metadata-Flavor": "Google" }, signal: AbortSignal.timeout(3_000) }
-  );
-  if (!tokenRes.ok) throw new Error(`metadata token ${tokenRes.status}`);
-  const { access_token } = (await tokenRes.json()) as { access_token: string };
-  const res = await fetch(
-    `https://aiplatform.googleapis.com/v1/projects/${project}/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-      signal: AbortSignal.timeout(30_000),
-    }
-  );
-  if (!res.ok) throw new Error(`Vertex ${res.status}`);
-  return extractGeminiText((await res.json()) as GeminiResponse);
+  } catch {
+    // fall through to templated report
+  }
+  return { report: fallbackReport(timeline, session.cameraName), source: "fallback" };
 }
 
 api.post("/report", async (c) => {
@@ -354,26 +352,185 @@ api.post("/report", async (c) => {
   const session = sessions.get(body.sessionId);
   if (!session) return c.json({ error: "unknown session" }, 404);
 
-  const timeline = session.tracker.timeline();
-  const prompt = buildReportPrompt(timeline, session.cameraName);
-
-  let report: string | null = null;
-  let source: "gemini" | "vertex" | "fallback" = "fallback";
-  try {
-    const geminiKey = process.env.GEMINI_API_KEY;
-    const project = process.env.GOOGLE_CLOUD_PROJECT;
-    if (geminiKey) {
-      report = await callGemini(prompt, geminiKey);
-      source = "gemini";
-    } else if (project) {
-      report = await callVertex(prompt, project);
-      source = "vertex";
-    }
-  } catch {
-    report = null;
-    source = "fallback";
-  }
-  if (!report) report = fallbackReport(timeline, session.cameraName);
-
+  const { report, source } = await sessionReport(session);
+  await trace({
+    sessionId: body.sessionId,
+    type: "verdict",
+    status: session.lastStatus ?? "clear",
+    report,
+    source,
+  });
   return c.json({ report, source, generatedAt: new Date().toISOString() });
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/report/decision — human-in-the-loop record.
+// ---------------------------------------------------------------------------
+
+const DECISIONS = new Set(["approved", "edited", "discarded"]);
+
+api.post("/report/decision", async (c) => {
+  let body: { sessionId?: string; action?: string; editedText?: string };
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: "invalid JSON body" }, 400);
+  }
+  if (!body.sessionId) return c.json({ error: "sessionId is required" }, 400);
+  if (!body.action || !DECISIONS.has(body.action)) {
+    return c.json({ error: "action must be approved|edited|discarded" }, 400);
+  }
+  await trace({
+    sessionId: body.sessionId,
+    type: "human_action",
+    action: body.action,
+    ...(body.action === "edited" && typeof body.editedText === "string"
+      ? { editedText: body.editedText }
+      : {}),
+  });
+  return c.json({ ok: true });
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/trace — session audit log.
+// ---------------------------------------------------------------------------
+
+api.get("/trace", async (c) => {
+  const sessionId = c.req.query("sessionId") || undefined;
+  const limitRaw = Number(c.req.query("limit"));
+  const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : 100;
+  return c.json({ entries: await readTrace(sessionId, limit) });
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/agent — intent-parsing agent over the CurbWatch tool belt.
+// ---------------------------------------------------------------------------
+
+interface AgentBody {
+  sessionId?: string;
+  message?: string;
+  cameraId?: string;
+  zone?: [number, number][];
+}
+
+function buildAgentTools(body: Required<Pick<AgentBody, "sessionId">> & AgentBody): AgentTools {
+  return {
+    search_cameras: async (args) => {
+      const { cameras } = await getCameras();
+      const query = typeof args.query === "string" ? args.query.toLowerCase() : "";
+      const borough =
+        typeof args.borough === "string" ? args.borough.toLowerCase() : "";
+      let matches = cameras;
+      if (query) {
+        matches = matches.filter((cam) => cam.name.toLowerCase().includes(query));
+      }
+      if (borough) {
+        matches = matches.filter((cam) => cam.area.toLowerCase() === borough);
+      }
+      return {
+        totalMatches: matches.length,
+        cameras: matches.slice(0, 10).map(({ id, name, area }) => ({ id, name, area })),
+      };
+    },
+
+    analyze_camera: async (args) => {
+      const cameraId =
+        (typeof args.cameraId === "string" && args.cameraId) || body.cameraId;
+      if (!cameraId) return { error: "cameraId is required" };
+      if (inferenceCalls >= maxInferenceCalls()) {
+        return { error: "inference budget exhausted", budget: budget() };
+      }
+      const frameRes = await fetch(`${NYCTMC}/${cameraId}/image`);
+      if (!frameRes.ok) return { error: `camera frame fetch failed: ${frameRes.status}` };
+      const bytes = Buffer.from(await frameRes.arrayBuffer());
+      inferenceCalls++;
+      const det = await detect(bytes);
+      const counts: Record<string, number> = {};
+      let confSum = 0;
+      for (const p of det.predictions) {
+        counts[p.class] = (counts[p.class] ?? 0) + 1;
+        confSum += p.confidence;
+      }
+      return {
+        cameraId,
+        cameraName: await cameraName(cameraId),
+        imageSize: det.image,
+        totalDetections: det.predictions.length,
+        countsByClass: counts,
+        meanConfidence: det.predictions.length
+          ? Number((confSum / det.predictions.length).toFixed(2))
+          : null,
+      };
+    },
+
+    lane_status: async () => {
+      const session = sessions.get(body.sessionId);
+      if (!session || session.frames === 0 || !session.lastResult) {
+        return {
+          watching: false,
+          note: "The user is not currently monitoring a lane in this session.",
+        };
+      }
+      return {
+        watching: true,
+        cameraName: session.cameraName,
+        framesAnalyzed: session.frames,
+        status: session.lastStatus,
+        personCount: session.tracker.personCount,
+        vehiclesInZone: session.lastResult.inZone.length,
+        blocking: session.lastResult.blocking.map((t) => ({
+          class: t.class,
+          dwellFrames: t.dwellFrames,
+          approxSeconds: t.dwellFrames * 3,
+        })),
+      };
+    },
+
+    generate_report: async () => {
+      const session = sessions.get(body.sessionId);
+      if (!session) return { error: "no monitoring session to report on" };
+      const { report, source } = await sessionReport(session);
+      await trace({
+        sessionId: body.sessionId,
+        type: "verdict",
+        status: session.lastStatus ?? "clear",
+        report,
+        source,
+      });
+      return { report, source };
+    },
+  };
+}
+
+api.post("/agent", async (c) => {
+  let body: AgentBody;
+  try {
+    body = await c.req.json<AgentBody>();
+  } catch {
+    return c.json({ error: "invalid JSON body" }, 400);
+  }
+  const { sessionId, message } = body;
+  if (!sessionId || !message) {
+    return c.json({ error: "sessionId and message are required" }, 400);
+  }
+  if (!hasGeminiCredentials()) {
+    return c.json({ error: "agent needs Gemini credentials" }, 503);
+  }
+
+  const ctx = {
+    sessionId,
+    cameraId: body.cameraId,
+    zone: body.zone,
+    cameraName: body.cameraId ? await cameraName(body.cameraId) : undefined,
+  };
+  try {
+    const { reply, toolsUsed } = await runAgentLoop(
+      message,
+      ctx,
+      buildAgentTools({ ...body, sessionId })
+    );
+    return c.json({ reply, toolsUsed, traceId: sessionId });
+  } catch (err) {
+    return c.json({ error: `agent failed: ${String(err)}` }, 502);
+  }
 });
