@@ -3,13 +3,218 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CurbWatch — NYC lane blockage agent</title>
+  <title>CurbWatch — is your bike lane blocked right now?</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <main style="font-family: system-ui; max-width: 40rem; margin: 4rem auto; padding: 0 1rem;">
-    <h1>🗽 CurbWatch</h1>
-    <p>An agent that watches NYC DOT traffic cameras and calls out vehicles blocking bike and bus lanes.</p>
-    <p><em>Deployed on Google Cloud Run — full UI landing shortly.</em></p>
+<body data-view="pick">
+
+  <header class="topbar">
+    <a class="wordmark" href="#" id="homeLink" aria-label="CurbWatch home">
+      <span class="wm-liberty" aria-hidden="true">🗽</span>
+      <span class="wm-curb">CURB</span><span class="wm-watch">WATCH</span>
+    </a>
+    <div class="topbar-cam" id="topbarCam" hidden>
+      <span class="topbar-cam-name" id="topbarCamName"></span>
+      <span class="plate" id="topbarCamBorough"></span>
+    </div>
+    <div class="topbar-tag">NYC DOT &middot; 965 CAMERAS &middot; LIVE</div>
+  </header>
+  <div class="hazard" aria-hidden="true"></div>
+
+  <main class="shell">
+
+    <!-- ============ STATE 1 — PICK A CAMERA ============ -->
+    <section id="view-pick" aria-label="Pick a camera">
+      <div class="hero">
+        <p class="hero-eyebrow"><span aria-hidden="true">🗽</span> CurbWatch</p>
+        <h1 class="hero-title">Is your bike lane <span class="hero-blocked">blocked</span> right now?</h1>
+        <p class="hero-lede">Pick one of NYC&rsquo;s 965 DOT traffic cameras, trace the lane once, and an agent
+        watches for vehicles parked where they shouldn&rsquo;t be &mdash; with a report you could hand to&nbsp;311.</p>
+      </div>
+
+      <div class="pick-controls">
+        <input type="search" id="camSearch" class="cam-search" placeholder="Search cameras &mdash; try &ldquo;1 Av&rdquo; or &ldquo;Flatbush&rdquo;"
+               aria-label="Search cameras by street name" autocomplete="off" />
+        <div class="chip-row" role="group" aria-label="Filter by borough">
+          <button class="chip" data-borough="All" aria-pressed="true">All</button>
+          <button class="chip" data-borough="Manhattan" aria-pressed="false">Manhattan</button>
+          <button class="chip" data-borough="Brooklyn" aria-pressed="false">Brooklyn</button>
+          <button class="chip" data-borough="Queens" aria-pressed="false">Queens</button>
+          <button class="chip" data-borough="Bronx" aria-pressed="false">Bronx</button>
+          <button class="chip" data-borough="Staten Island" aria-pressed="false">Staten Island</button>
+        </div>
+      </div>
+
+      <p class="cam-count" id="camCount" aria-live="polite"></p>
+
+      <div id="camLoading" class="cam-msg">
+        <span class="dot-pulse" aria-hidden="true">&#9679;</span> Contacting camera network&hellip;
+      </div>
+
+      <div id="camError" class="cam-msg cam-error" hidden>
+        <p><strong>Camera list unavailable.</strong> The backend didn&rsquo;t answer &mdash; it may still be waking up.</p>
+        <button class="btn btn-yellow" id="camRetry">Retry</button>
+      </div>
+
+      <ul id="camList" class="cam-list" hidden></ul>
+    </section>
+
+    <!-- ============ STATE 2 — TRACE THE LANE ============ -->
+    <section id="view-draw" aria-label="Trace the lane zone" hidden>
+      <div class="draw-grid">
+        <div class="frame-wrap" id="drawFrameWrap">
+          <img id="previewImg" alt="Live traffic camera frame" draggable="false" />
+          <canvas id="drawCanvas" aria-label="Lane zone drawing surface. Click to add polygon points."></canvas>
+          <div class="cctv-hud cctv-hud-top">
+            <span id="drawHudCam"></span>
+            <span>LIVE&nbsp;PREVIEW</span>
+          </div>
+          <div id="previewError" class="frame-msg" hidden>Frame unavailable &mdash; camera may be offline.
+            <button class="btn btn-ghost btn-sm" id="previewRetry">Reload frame</button>
+          </div>
+        </div>
+
+        <aside class="side-panel">
+          <h2 class="panel-title"><span class="lane-tick" aria-hidden="true"></span>Trace the lane</h2>
+          <ol class="steps">
+            <li><span><b>Click</b> around the bike or bus lane to drop corner points.</span></li>
+            <li><span><b>Double-click</b> (or press Done) to close the zone &mdash; 3+ points.</span></li>
+            <li><span>Hit <b>Start watching</b>. The agent takes it from there.</span></li>
+          </ol>
+
+          <p class="zone-status" id="zoneStatus" aria-live="polite">0 points &mdash; click the frame to start</p>
+
+          <div class="btn-col">
+            <button class="btn btn-green" id="startWatchBtn" disabled>Start watching</button>
+            <div class="btn-row">
+              <button class="btn btn-ghost" id="doneZoneBtn" disabled>Done</button>
+              <button class="btn btn-ghost" id="clearZoneBtn">Clear</button>
+              <button class="btn btn-ghost" id="refreshFrameBtn">New frame</button>
+            </div>
+            <button class="btn btn-ghost btn-back" id="backToPickBtn">&larr; Change camera</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============ STATE 3 — WATCH MODE ============ -->
+    <section id="view-watch" aria-label="Watch mode" hidden>
+      <div id="statusBanner" class="banner banner-clear" role="status" aria-live="polite">
+        <span class="banner-word" id="bannerWord">CLEAR</span>
+        <span class="banner-cam" id="bannerCam"></span>
+      </div>
+
+      <div class="watch-grid">
+        <div class="frame-wrap" id="watchFrameWrap">
+          <canvas id="watchCanvas" aria-label="Analyzed camera frame with lane zone and detections"></canvas>
+          <div class="cctv-hud cctv-hud-top">
+            <span id="hudCam"></span>
+            <span id="hudTime"></span>
+          </div>
+          <div class="replay-badge" id="replayBadge" hidden>REPLAY</div>
+          <div id="watchNotice" class="frame-msg" hidden></div>
+          <div id="watchWaiting" class="frame-msg">
+            <span class="dot-pulse" aria-hidden="true">&#9679;</span> Waiting for first analyzed frame&hellip;
+          </div>
+        </div>
+
+        <aside class="side-panel watch-panel">
+          <div class="stat-row" aria-label="Live counts">
+            <div class="stat"><span class="stat-num" id="statInZone">0</span><span class="stat-label">in zone</span></div>
+            <div class="stat"><span class="stat-num stat-red" id="statBlocking">0</span><span class="stat-label">blocking</span></div>
+            <div class="stat"><span class="stat-num" id="statPeople">0</span><span class="stat-label">people</span></div>
+          </div>
+
+          <section class="report-sec" aria-label="Agent report">
+            <h2 class="panel-title"><span class="lane-tick" aria-hidden="true"></span>Agent report</h2>
+            <button class="btn btn-yellow" id="reportBtn">Get agent verdict</button>
+            <p class="report-err" id="reportErr" hidden></p>
+            <article class="report-card" id="reportCard" hidden>
+              <header class="report-head">
+                <span>CURBWATCH &middot; LANE OBSTRUCTION REPORT</span>
+                <span class="report-badge" id="reportSource"></span>
+              </header>
+              <dl class="report-meta">
+                <div><dt>GENERATED</dt><dd id="reportTime"></dd></div>
+                <div><dt>CAMERA</dt><dd id="reportCam"></dd></div>
+              </dl>
+              <p class="report-body" id="reportBody"></p>
+              <div class="report-edit" id="reportEdit" hidden>
+                <textarea id="reportEditText" rows="7" aria-label="Edit the report text"></textarea>
+                <div class="report-actions">
+                  <button class="btn btn-green btn-sm" id="saveEditBtn">Save</button>
+                  <button class="btn btn-ghost btn-sm" id="cancelEditBtn">Cancel</button>
+                </div>
+              </div>
+              <div class="report-actions" id="reportActions" hidden>
+                <button class="btn btn-green btn-sm" id="approveBtn">Approve</button>
+                <button class="btn btn-ghost btn-sm" id="editBtn">Edit</button>
+                <button class="btn btn-ghost btn-sm" id="discardBtn">Discard</button>
+              </div>
+              <div class="stamp" id="approvedStamp" hidden>
+                <span class="stamp-word">Approved &#10003;</span>
+                <span class="stamp-sub">ready for 311</span>
+              </div>
+              <footer class="report-foot">Draft for a 311 service request &mdash; a human signs off before anything is filed.</footer>
+            </article>
+          </section>
+
+          <details class="chat-sec" id="chatSec">
+            <summary class="chat-summary">
+              <h2 class="panel-title"><span class="lane-tick" aria-hidden="true"></span>Ask CurbWatch</h2>
+              <span class="chat-caret" aria-hidden="true">&#9656;</span>
+            </summary>
+            <div class="chat-msgs" id="chatMsgs" aria-live="polite"></div>
+            <p class="chat-notice" id="chatNotice" hidden></p>
+            <form class="chat-form" id="chatForm">
+              <input type="text" id="chatInput" placeholder="Ask about this camera&hellip;"
+                     aria-label="Message the CurbWatch agent" autocomplete="off" maxlength="500" />
+              <button class="btn btn-yellow btn-sm" type="submit" id="chatSend">Send</button>
+            </form>
+          </details>
+
+          <section class="log-sec" aria-label="Event log">
+            <h2 class="panel-title"><span class="lane-tick" aria-hidden="true"></span>Event log</h2>
+            <ol class="event-log" id="eventLog">
+              <li class="event event-idle">No events yet &mdash; watching&hellip;</li>
+            </ol>
+          </section>
+        </aside>
+      </div>
+
+      <footer class="statusbar">
+        <span class="sb-item sb-live" id="sbLive"><span class="dot-pulse" aria-hidden="true">&#9679;</span> watching</span>
+        <span class="sb-item">frames&nbsp;<b id="sbFrames">0</b></span>
+        <span class="sb-item sb-budget">
+          <span>inference&nbsp;budget</span>
+          <span class="budget-meter" aria-hidden="true"><span class="budget-fill" id="budgetFill"></span></span>
+          <b id="budgetText">&ndash;/&ndash;</b>
+        </span>
+        <label class="sb-item toggle">
+          <input type="checkbox" id="replayToggle" />
+          <span class="toggle-track" aria-hidden="true"></span>
+          Replay mode
+        </label>
+        <button class="btn btn-ghost btn-sm" id="traceBtn" aria-expanded="false">&#9881; Agent trace (JSONL)</button>
+        <button class="btn btn-ghost btn-sm" id="stopBtn">Stop &mdash; edit zone</button>
+      </footer>
+
+      <div class="trace-drawer" id="traceDrawer" aria-label="Agent trace" role="region">
+        <header class="trace-head">
+          <span class="trace-title">AGENT TRACE &middot; <span id="traceSession"></span></span>
+          <span class="trace-tools">
+            <button class="btn btn-ghost btn-sm" id="traceRefresh">Refresh</button>
+            <button class="btn btn-ghost btn-sm" id="traceDownload">Download .jsonl</button>
+            <button class="btn btn-ghost btn-sm" id="traceClose" aria-label="Close trace drawer">&#10005;</button>
+          </span>
+        </header>
+        <ol class="trace-list" id="traceList"></ol>
+        <p class="trace-empty" id="traceEmpty" hidden></p>
+      </div>
+    </section>
+
   </main>
+
+  <script src="app.js"></script>
 </body>
 </html>
