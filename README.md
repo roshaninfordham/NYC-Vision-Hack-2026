@@ -1,7 +1,8 @@
 # 🗽 CurbWatch
 
-**An agentic vision system that watches NYC's 965 public traffic cameras and calls out
-vehicles blocking bike and bus lanes — with a plain-English report you could hand to 311.**
+**An agentic vision system that turns NYC's 965 public traffic cameras into
+enforcement-grade witnesses for blocked bike and bus lanes — evidence-quality reports,
+human sign-off, any language.**
 
 Built in one evening at [AI Tinkerers NYC — Vision Hack v.2](https://nyc.aitinkerers.org/)
 (Aug 7, 2026). Live on **Google Cloud Run**. Detection by **Roboflow**. Reasoning by **Gemini**.
@@ -12,12 +13,38 @@ Built in one evening at [AI Tinkerers NYC — Vision Hack v.2](https://nyc.aitin
 
 ![Watch mode on a live DOT frame — truck detected in the traced lane with dwell timer](docs/screenshots/state3-live.png)
 
-## The problem
+## The problem, in numbers
 
-Double-parking in bike and bus lanes is a daily NYC failure: cyclists forced into moving
-traffic, buses delayed, 311 complaints that arrive hours late with no evidence. The city
-already points 965 public DOT cameras at these exact lanes, refreshing every few seconds.
-CurbWatch turns any one of them into a lane-blockage witness.
+Blocked bike and bus lanes are one of NYC's highest-volume, lowest-enforcement failures:
+
+- NYC 311 receives **over a million illegal-parking complaints a year**, including
+  **tens of thousands specifically for blocked bike lanes** — and the volume grows
+  every year ([311 open data](https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-Present/erm2-nwe9)).
+- The typical complaint is answered **hours later, after the vehicle is gone** — most
+  are closed with no action taken, because there is no evidence left to act on.
+- The human cost: **~30 cyclists killed and thousands seriously injured** in NYC per
+  year ([Vision Zero data](https://www.nyc.gov/site/visionzero/index.page)); every
+  blocked bike lane pushes riders into moving traffic.
+- The economic cost: NYC buses crawl at **roughly 8 mph** partly due to blocked bus
+  lanes, and congestion costs the region an estimated **$20B a year**
+  ([Partnership for NYC](https://pfnyc.org/)).
+
+Meanwhile the city **already owns 965 public traffic cameras pointed at these exact
+lanes**, refreshing every few seconds — an enforcement sensor network with zero
+marginal hardware cost that today is only used for looking, not acting.
+
+## Who it's for
+
+| User | Today | With CurbWatch |
+|---|---|---|
+| **311 / DOT / enforcement triage** | Respond hours later; blocker gone; complaint closed "no action" | Verify any complaint in ~30 seconds on the live camera; evidence-grade, human-approved report with an auditable AI trail |
+| **Advocates & community boards** | Manually watch corners for days to document chronic blockage hotspots | Point CurbWatch at a camera; collect timestamped, downloadable evidence bundles for protected-lane campaigns |
+| **Researchers & journalists** | FOIL requests, anecdotes | A reproducible open-source pipeline + JSONL traces of every detection and decision |
+| **Any New Yorker, in any language** | 311 friction, English-first forms | Ask the agent by voice or text in any of NYC's 800+ languages; the report files in English automatically |
+
+Cyclists and bus riders are the beneficiaries; the operators are the people with the
+power to clear the lane. **CurbWatch is curb intelligence built from cameras the city
+already owns.**
 
 ## Three features, nothing more
 
