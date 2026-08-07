@@ -1,0 +1,34 @@
+{
+  "name": "curbwatch",
+  "version": "0.1.0",
+  "description": "An agentic vision system that watches NYC DOT traffic cameras and calls out vehicles blocking bike and bus lanes.",
+  "type": "module",
+  "main": "dist/core/index.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "test": "node --test --import tsx test/*.test.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "nyc",
+    "computer-vision",
+    "agent",
+    "roboflow",
+    "traffic-camera",
+    "bike-lane"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "hono": "^4.6.14"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
