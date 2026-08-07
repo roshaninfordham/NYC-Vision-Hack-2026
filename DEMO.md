@@ -16,14 +16,14 @@ Open the live URL. The map is already loaded: yellow dots over a glowing green n
 > Tens of thousands are blocked bike lanes. Almost all of them are closed with no
 > action — because by the time anyone responds, the car is gone. There's no evidence.**
 >
-> **But the city already owns 965 traffic cameras, and they're pointed at those exact
+> **But the city already owns 963 traffic cameras, and they're pointed at those exact
 > lanes. Every yellow dot is a live camera. Every green line is a bike lane, from NYC
 > Open Data. CurbWatch turns any of those cameras into an enforcement-grade witness —
 > for 311 triage, for advocates, and for any New Yorker, in any language."**
 
 ![Landing map](docs/screenshots/map-bikelanes.png)
 
-**Backup if the map is slow:** click **LIST** — the same 965 cameras as a searchable list.
+**Backup if the map is slow:** click **LIST** — the same 963 cameras as a searchable list.
 
 ---
 
@@ -69,7 +69,7 @@ Boxes appear on the frame within ~3 seconds. Point at the banner as it changes.
 > out of the zone. That's the difference between 'a car was here' and 'this vehicle
 > has blocked the lane for 40 seconds.'"**
 
-![Target-locked vehicle](docs/screenshots/target-lock.png)
+![Live watch on a real evening frame](docs/screenshots/real-watch.png)
 
 ---
 
@@ -93,7 +93,7 @@ Boxes appear on the frame within ~3 seconds. Point at the banner as it changes.
 > decision, the keyframe, and the complete agent trace — one file, ready to attach to a
 > 311 request or keep as a public record."**
 
-![Report + approval stamp](docs/screenshots/feat-chat-stamp.png)
+![Real grounded Gemini report, approved, evidence bundle ready](docs/screenshots/real-report.png)
 
 ---
 
@@ -120,7 +120,7 @@ In the **Ask CurbWatch** panel, click a suggested chip or type. Use **one** of t
 
 You can also click the **🎤 mic** and speak the question — voice in, voice out.
 
-![Multilingual voice chat](docs/screenshots/voice-chat.png)
+![Real Hindi question and Hindi agent reply](docs/screenshots/real-chat.png)
 
 ---
 
@@ -132,7 +132,7 @@ You can also click the **🎤 mic** and speak the question — voice in, voice o
 > human decision — is logged as JSONL, downloadable. That's how you evaluate an agent
 > and improve it, instead of trusting it."**
 
-![JSONL trace drawer](docs/screenshots/feat-trace.png)
+![Real JSONL agent trace from this session](docs/screenshots/real-trace.png)
 
 > **"CurbWatch runs entirely on Google Cloud Run — one container, scale-to-zero, so
 > watching a lane costs cents. Detection is Roboflow's hosted API, reasoning is Gemini
@@ -165,7 +165,7 @@ You can also click the **🎤 mic** and speak the question — voice in, voice o
 
 ## The one-paragraph pitch (if you only get 30 seconds)
 
-> **CurbWatch turns New York's 965 existing traffic cameras into enforcement-grade
+> **CurbWatch turns New York's 963 existing traffic cameras into enforcement-grade
 > witnesses for blocked bike and bus lanes. You pick a camera, trace the lane once, and
 > an agent watches: Roboflow detects vehicles, our tracker proves one *stayed* rather
 > than passed through, and Gemini — looking at the actual frame, not just the detector's
