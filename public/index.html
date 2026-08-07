@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CurbWatch — is your bike lane blocked right now?</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗽</text></svg>" />
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body data-view="pick">
@@ -44,9 +45,18 @@
           <button class="chip" data-borough="Bronx" aria-pressed="false">Bronx</button>
           <button class="chip" data-borough="Staten Island" aria-pressed="false">Staten Island</button>
         </div>
+        <div class="view-toggle" role="group" aria-label="Camera picker view">
+          <button class="chip" id="mapViewBtn" aria-pressed="true">Map</button>
+          <button class="chip" id="listViewBtn" aria-pressed="false">List</button>
+        </div>
       </div>
 
       <p class="cam-count" id="camCount" aria-live="polite"></p>
+      <p class="pick-notice" id="pickNotice" hidden></p>
+
+      <div class="map-wrap" id="mapWrap">
+        <div id="map" aria-label="Map of NYC DOT cameras"></div>
+      </div>
 
       <div id="camLoading" class="cam-msg">
         <span class="dot-pulse" aria-hidden="true">&#9679;</span> Contacting camera network&hellip;
@@ -169,9 +179,16 @@
             <p class="chat-notice" id="chatNotice" hidden></p>
             <form class="chat-form" id="chatForm">
               <input type="text" id="chatInput" placeholder="Ask about this camera&hellip;"
-                     aria-label="Message the CurbWatch agent" autocomplete="off" maxlength="500" />
+                     aria-label="Message the CurbWatch agent (any language)" autocomplete="off" maxlength="500" />
+              <button class="btn btn-ghost btn-sm mic-btn" type="button" id="micBtn"
+                      aria-label="Ask by voice" aria-pressed="false">&#127908;</button>
               <button class="btn btn-yellow btn-sm" type="submit" id="chatSend">Send</button>
             </form>
+            <label class="toggle chat-tts" id="ttsWrap">
+              <input type="checkbox" id="ttsToggle" />
+              <span class="toggle-track" aria-hidden="true"></span>
+              &#128264; Speak replies aloud
+            </label>
           </details>
 
           <section class="log-sec" aria-label="Event log">
@@ -216,6 +233,7 @@
 
   </main>
 
+  <script src="vendor/leaflet/leaflet.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

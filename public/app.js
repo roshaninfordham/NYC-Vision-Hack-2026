@@ -24,6 +24,7 @@ const state = {
   cameras: [],
   filterText: '',
   borough: 'All',
+  pickView: 'map',     // 'map' | 'list'
   camera: null,
   zone: [],            // normalized {x,y}, 0–1 relative to displayed frame
   zoneClosed: false,
@@ -59,6 +60,7 @@ function show(view) {
 async function loadCameras() {
   $('#camError').hidden = true;
   $('#camList').hidden = true;
+  $('#mapWrap').hidden = true;
   $('#camLoading').hidden = false;
   $('#camCount').textContent = '';
   try {
@@ -68,6 +70,10 @@ async function loadCameras() {
     state.cameras = (data.cameras || []).slice().sort((a, b) =>
       (isOnline(b) ? 1 : 0) - (isOnline(a) ? 1 : 0) || String(a.name).localeCompare(String(b.name)));
     $('#camLoading').hidden = true;
+    initMap();
+    buildMarkers();
+    if (!map) state.pickView = 'list';
+    setPickView(state.pickView);
     renderCameras();
   } catch (err) {
     $('#camLoading').hidden = true;
@@ -75,14 +81,20 @@ async function loadCameras() {
   }
 }
 
-function renderCameras() {
+function filteredCameras() {
   const text = state.filterText.trim().toLowerCase();
-  const list = state.cameras.filter((c) => {
+  return state.cameras.filter((c) => {
     if (state.borough !== 'All' &&
         !String(c.area || '').toLowerCase().includes(state.borough.toLowerCase())) return false;
     if (text && !String(c.name).toLowerCase().includes(text)) return false;
     return true;
   });
+}
+
+function renderCameras() {
+  const text = state.filterText.trim();
+  const list = filteredCameras();
+  applyMapFilter(list);
 
   const ul = $('#camList');
   ul.textContent = '';
@@ -111,11 +123,106 @@ function renderCameras() {
     frag.appendChild(li);
   }
   ul.appendChild(frag);
-  ul.hidden = false;
+  ul.hidden = state.pickView !== 'list';
   $('#camCount').textContent =
     `${list.length} camera${list.length === 1 ? '' : 's'}` +
     (state.borough !== 'All' ? ` · ${state.borough.toUpperCase()}` : '') +
-    (text ? ` · “${state.filterText.trim()}”` : '');
+    (text ? ` · “${text}”` : '');
+}
+
+/* --- map picker (Leaflet, vendored) --- */
+
+let map = null;
+let tilesLoaded = 0;
+let mapMarkers = [];   // [{marker, cam}]
+
+const BOROUGH_VIEWS = {
+  'All':           { center: [40.72, -73.98],     zoom: 11 },
+  'Manhattan':     { center: [40.7781, -73.9665], zoom: 12 },
+  'Brooklyn':      { center: [40.6526, -73.9497], zoom: 12 },
+  'Queens':        { center: [40.7282, -73.8158], zoom: 11 },
+  'Bronx':         { center: [40.8448, -73.8648], zoom: 12 },
+  'Staten Island': { center: [40.5795, -74.1502], zoom: 12 },
+};
+
+const DOT_STYLE_BASE    = { radius: 4.5, fillColor: '#ffb612', fillOpacity: 0.9, color: '#141518', weight: 1 };
+const DOT_STYLE_OFFLINE = { radius: 3.5, fillColor: '#5a5f66', fillOpacity: 0.7, color: '#141518', weight: 1 };
+const DOT_STYLE_HOVER   = { radius: 7, fillColor: '#2fa34f', fillOpacity: 1 };
+
+function initMap() {
+  if (map || typeof L === 'undefined') return;
+  $('#mapWrap').hidden = false;   // Leaflet needs a visible container to size itself
+  map = L.map('map', { preferCanvas: true }).setView(BOROUGH_VIEWS.All.center, BOROUGH_VIEWS.All.zoom);
+  let tileErrors = 0;
+  const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors',
+  }).addTo(map);
+  tiles.on('tileload', () => { tilesLoaded += 1; });
+  tiles.on('tileerror', () => {
+    tileErrors += 1;
+    if (tilesLoaded === 0 && tileErrors >= 6 && state.pickView === 'map') {
+      setPickView('list', { notice: 'Map tiles unavailable (offline?) — showing the list instead.' });
+    }
+  });
+}
+
+function markerPopup(cam) {
+  const div = document.createElement('div');
+  const name = document.createElement('p');
+  name.className = 'cam-pop-name';
+  name.textContent = cam.name;
+  const borough = document.createElement('p');
+  borough.className = 'cam-pop-borough';
+  borough.textContent = (cam.area || '—') + (isOnline(cam) ? '' : ' · OFFLINE');
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn btn-green btn-sm cam-pop-btn';
+  btn.textContent = 'Watch this camera';
+  btn.addEventListener('click', () => { map.closePopup(); selectCamera(cam); });
+  div.append(name, borough, btn);
+  return div;
+}
+
+function buildMarkers() {
+  if (!map) return;
+  for (const { marker } of mapMarkers) marker.remove();
+  mapMarkers = [];
+  for (const cam of state.cameras) {
+    const lat = Number(cam.latitude), lng = Number(cam.longitude);
+    if (!isFinite(lat) || !isFinite(lng) || (lat === 0 && lng === 0)) continue;
+    const base = isOnline(cam) ? DOT_STYLE_BASE : DOT_STYLE_OFFLINE;
+    const marker = L.circleMarker([lat, lng], base);
+    marker.on('mouseover', () => marker.setStyle(DOT_STYLE_HOVER));
+    marker.on('mouseout', () => marker.setStyle(base));
+    marker.bindPopup(() => markerPopup(cam));
+    marker.addTo(map);
+    mapMarkers.push({ marker, cam });
+  }
+}
+
+function applyMapFilter(list) {
+  if (!map) return;
+  const keep = new Set(list.map((c) => c.id));
+  for (const { marker, cam } of mapMarkers) {
+    const shown = map.hasLayer(marker);
+    if (keep.has(cam.id) && !shown) marker.addTo(map);
+    else if (!keep.has(cam.id) && shown) marker.remove();
+  }
+}
+
+function setPickView(view, { notice } = {}) {
+  state.pickView = map ? view : 'list';
+  const isMap = state.pickView === 'map';
+  $('#mapWrap').hidden = !isMap;
+  $('#camList').hidden = isMap;
+  $('#mapViewBtn').setAttribute('aria-pressed', String(isMap));
+  $('#listViewBtn').setAttribute('aria-pressed', String(!isMap));
+  if (!map) document.querySelector('.view-toggle').hidden = true;
+  const n = $('#pickNotice');
+  n.textContent = notice || '';
+  n.hidden = !notice;
+  if (isMap) setTimeout(() => map.invalidateSize(), 60);
 }
 
 function selectCamera(cam) {
@@ -661,6 +768,8 @@ async function discardReport() {
 /* --- Ask CurbWatch chat --- */
 
 function resetChat() {
+  stopListening();
+  stopSpeech();
   $('#chatMsgs').textContent = '';
   $('#chatNotice').hidden = true;
   $('#chatInput').value = '';
@@ -728,6 +837,7 @@ async function sendChat(message) {
     const data = await res.json();
     chatBubble('chat-agent', data.reply || '(no reply)');
     chatToolChips(data.toolsUsed);
+    if (data.reply) speakReply(data.reply);
   } catch {
     thinking.remove();
     const n = $('#chatNotice');
@@ -736,6 +846,96 @@ async function sendChat(message) {
   } finally {
     $('#chatSend').disabled = false;
   }
+}
+
+/* --- voice: mic input + spoken replies (demo flourish, degrades to text) --- */
+
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recog = null;
+let listening = false;
+
+const CHAT_HINTS = [
+  'Ask about this camera… (any language)',
+  'Pregúntame en español…',
+  '用中文问我…',
+  'Poze m kesyon an kreyòl…',
+  'Спросите меня по-русски…',
+  'اسألني بالعربية…',
+  'Posez-moi la question en français…',
+];
+let hintIdx = 0;
+setInterval(() => {
+  const input = $('#chatInput');
+  if (listening || document.activeElement === input) return;
+  hintIdx = (hintIdx + 1) % CHAT_HINTS.length;
+  input.placeholder = CHAT_HINTS[hintIdx];
+}, 4000);
+
+function startListening() {
+  if (!SpeechRec) return;
+  recog = new SpeechRec();
+  recog.lang = navigator.language || '';
+  recog.interimResults = true;
+  recog.continuous = false;
+  listening = true;
+  const btn = $('#micBtn');
+  btn.classList.add('listening');
+  btn.setAttribute('aria-pressed', 'true');
+  $('#chatInput').placeholder = 'Listening…';
+  recog.onresult = (e) => {
+    let interim = '', final = '';
+    for (const r of e.results) (r.isFinal ? final += r[0].transcript : interim += r[0].transcript);
+    $('#chatInput').value = final || interim;
+    if (final.trim()) {
+      stopListening();
+      $('#chatInput').value = '';
+      sendChat(final.trim());
+    }
+  };
+  recog.onerror = () => stopListening();
+  recog.onend = () => { if (listening) stopListening(); };
+  try { recog.start(); } catch { stopListening(); }
+}
+
+function stopListening() {
+  listening = false;
+  const btn = $('#micBtn');
+  btn.classList.remove('listening');
+  btn.setAttribute('aria-pressed', 'false');
+  $('#chatInput').placeholder = CHAT_HINTS[hintIdx];
+  if (recog) { try { recog.stop(); } catch { /* already stopped */ } recog = null; }
+}
+
+/* pick a spoken language from the reply's script (rough, on purpose) */
+function detectLangCode(text) {
+  if (/[一-鿿]/.test(text)) return 'zh-CN';
+  if (/[぀-ヿ]/.test(text)) return 'ja-JP';
+  if (/[가-힯]/.test(text)) return 'ko-KR';
+  if (/[؀-ۿ]/.test(text)) return 'ar';
+  if (/[Ѐ-ӿ]/.test(text)) return 'ru-RU';
+  if (/[֐-׿]/.test(text)) return 'he-IL';
+  if (/[ऀ-ॿ]/.test(text)) return 'hi-IN';
+  if (/[¿¡]|\b(el|la|los|las|está|es|una|para|qué|carril)\b/i.test(text)) return 'es';
+  if (/\b(le|les|est|une|vous|pour|voie|caméra)\b/i.test(text)) return 'fr';
+  return '';
+}
+
+function speakReply(text) {
+  if (!('speechSynthesis' in window) || !$('#ttsToggle').checked) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  const lang = detectLangCode(text);
+  if (lang) {
+    u.lang = lang;
+    const voice = speechSynthesis.getVoices()
+      .find((v) => v.lang && v.lang.toLowerCase().startsWith(lang.slice(0, 2).toLowerCase()));
+    if (voice) u.voice = voice;
+  }
+  speechSynthesis.speak(u);
+}
+
+function stopSpeech() {
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
 }
 
 /* --- agent trace drawer --- */
@@ -836,15 +1036,21 @@ function fmtDateTime(ts) {
 /* ---------------------------------------------------------- wiring */
 
 $('#camSearch').addEventListener('input', (e) => { state.filterText = e.target.value; renderCameras(); });
-for (const chip of document.querySelectorAll('.chip')) {
+for (const chip of document.querySelectorAll('.chip[data-borough]')) {
   chip.addEventListener('click', () => {
     state.borough = chip.dataset.borough;
-    for (const c of document.querySelectorAll('.chip')) {
+    for (const c of document.querySelectorAll('.chip[data-borough]')) {
       c.setAttribute('aria-pressed', String(c === chip));
     }
     renderCameras();
+    const view = BOROUGH_VIEWS[state.borough];
+    if (map && view && state.pickView === 'map') {
+      map.flyTo(view.center, view.zoom, { duration: 0.9 });
+    }
   });
 }
+$('#mapViewBtn').addEventListener('click', () => setPickView('map'));
+$('#listViewBtn').addEventListener('click', () => setPickView('list'));
 $('#camRetry').addEventListener('click', loadCameras);
 $('#homeLink').addEventListener('click', (e) => { e.preventDefault(); stopWatching(); show('pick'); });
 
@@ -874,6 +1080,11 @@ $('#chatForm').addEventListener('submit', (e) => {
   sendChat(msg);
 });
 
+if (!SpeechRec) $('#micBtn').hidden = true;
+if (!('speechSynthesis' in window)) $('#ttsWrap').hidden = true;
+$('#micBtn').addEventListener('click', () => (listening ? stopListening() : startListening()));
+$('#ttsToggle').addEventListener('change', (e) => { if (!e.target.checked) stopSpeech(); });
+
 $('#traceBtn').addEventListener('click', () => {
   $('#traceDrawer').classList.contains('open') ? closeTrace() : openTrace();
 });
@@ -884,4 +1095,7 @@ $('#traceDownload').addEventListener('click', downloadTrace);
 loadCameras();
 
 /* small hook for demos & debugging from the console */
-window.CurbWatch = { state, selectCamera, enterWatch, onAnalysis, show };
+window.CurbWatch = {
+  state, selectCamera, enterWatch, onAnalysis, show,
+  map: () => map, markers: () => mapMarkers,
+};

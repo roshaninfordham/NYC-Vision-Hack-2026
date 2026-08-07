@@ -117,7 +117,7 @@ button { font: inherit; color: inherit; cursor: pointer; background: none; borde
    STATE 1 — pick a camera
    ============================================================ */
 
-.hero { max-width: 52rem; padding: 1.5rem 0 1.75rem; }
+.hero { max-width: 52rem; padding: 1rem 0 1.25rem; }
 
 .hero-eyebrow {
   font-family: var(--mono);
@@ -204,6 +204,72 @@ button { font: inherit; color: inherit; cursor: pointer; background: none; borde
   color: var(--steel);
   padding: 0.3rem 0 0.6rem;
 }
+
+.view-toggle { display: flex; gap: 0; margin-left: auto; }
+.view-toggle .chip { border-radius: 2px 0 0 2px; }
+.view-toggle .chip + .chip { border-radius: 0 2px 2px 0; border-left: none; }
+
+.pick-notice {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--taxi);
+  border: 1px dashed var(--line);
+  padding: 0.5rem 0.7rem;
+  margin-bottom: 0.7rem;
+}
+
+/* ---------- map picker ---------- */
+
+.map-wrap {
+  position: relative;
+  height: max(360px, calc(100vh - 400px));
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--asphalt-2);
+}
+#map { position: absolute; inset: 0; background: var(--asphalt-2); }
+
+/* darken OSM raster tiles to match the asphalt UI */
+.leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9);
+}
+
+.leaflet-container { font-family: var(--sans); }
+.leaflet-container a { color: var(--taxi); }
+.leaflet-control-attribution {
+  background: rgba(14, 15, 17, 0.85) !important;
+  color: var(--steel);
+  font-family: var(--mono);
+  font-size: 0.62rem;
+}
+.leaflet-control-attribution a { color: var(--steel); }
+.leaflet-bar a {
+  background: var(--asphalt-2);
+  color: var(--paint);
+  border-color: var(--line);
+}
+.leaflet-bar a:hover { background: var(--asphalt-3); color: var(--taxi); }
+
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+  background: #0e0f11;
+  color: var(--paint);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+}
+.leaflet-popup-content { margin: 0.75rem 0.9rem; font-family: var(--sans); }
+.leaflet-container a.leaflet-popup-close-button { color: var(--steel); }
+.cam-pop-name { font-weight: 600; margin-bottom: 0.15rem; max-width: 15rem; }
+.cam-pop-borough {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--steel);
+  margin-bottom: 0.6rem;
+}
+.cam-pop-btn { width: 100%; }
 
 .cam-msg {
   padding: 2.5rem 0;
@@ -681,6 +747,21 @@ body[data-view="watch"] .shell { padding-bottom: 0; }
   margin-bottom: 0.6rem;
 }
 .chat-form { display: flex; gap: 0.5rem; }
+.mic-btn { font-size: 0.95rem; padding: 0.35rem 0.6rem; flex: none; }
+.mic-btn.listening {
+  background: var(--blocked);
+  border-color: var(--blocked);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.chat-tts {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--steel);
+}
 .chat-form input {
   flex: 1;
   min-width: 0;
