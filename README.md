@@ -8,6 +8,7 @@ Built in one evening at [AI Tinkerers NYC — Vision Hack v.2](https://nyc.aitin
 (Aug 7, 2026). Live on **Google Cloud Run**. Detection by **Roboflow**. Reasoning by **Gemini**.
 
 **Live demo:** https://curbwatch-631243785209.us-central1.run.app
+**▶ [3-minute demo script](DEMO.md)** — narrated, step by step, with edge-case fallbacks.
 
 ![All 965 DOT cameras over NYC's bike-lane network](docs/screenshots/map-bikelanes.png)
 
