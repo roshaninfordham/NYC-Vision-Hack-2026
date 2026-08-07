@@ -40,9 +40,23 @@ const state = {
   pollTimer: null,
   rafId: null,
   traceEntries: [],
+  lastReport: null,    // last /api/report payload (report may be human-edited)
+  lockedTrackId: null, // target-locked detection trackId
+  lockedClass: null,
+  lockedMissing: 0,    // consecutive frames the locked target was absent
 };
 
 /* ---------------------------------------------------------- views */
+
+/* swap a button's label for a spinner while an async action runs */
+function btnSpinner(btn, label) {
+  btn.disabled = true;
+  btn.textContent = '';
+  const s = document.createElement('span');
+  s.className = 'spin';
+  s.setAttribute('aria-hidden', 'true');
+  btn.append(s, label);
+}
 
 function show(view) {
   for (const v of ['pick', 'draw', 'watch']) $('#view-' + v).hidden = v !== view;
@@ -72,6 +86,7 @@ async function loadCameras() {
     $('#camLoading').hidden = true;
     initMap();
     buildMarkers();
+    loadBikeLanes();
     if (!map) state.pickView = 'list';
     setPickView(state.pickView);
     renderCameras();
@@ -201,6 +216,60 @@ function buildMarkers() {
   }
 }
 
+/* --- bike-lane network overlay (NYC DOT bicycle routes) --- */
+
+let bikeLayer = null;
+let bikeLanesOn = true;
+let bikeLanesLoading = false;
+
+// facilitycl "I" = protected lane / greenway → drawn heavier
+function bikeLaneStyle(feature) {
+  const isProtected = feature && feature.properties && feature.properties.c === 'I';
+  return {
+    color: '#2fa34f',
+    weight: isProtected ? 3 : 2,
+    opacity: isProtected ? 0.9 : 0.75,
+  };
+}
+
+async function loadBikeLanes() {
+  if (!map || bikeLayer || bikeLanesLoading) return;
+  bikeLanesLoading = true;
+  try {
+    const res = await fetch('/data/bike-routes.geojson');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const geo = await res.json();
+    bikeLayer = L.geoJSON(geo, { style: bikeLaneStyle, interactive: false });
+    $('#bikeLanesBtn').hidden = false;
+    if (bikeLanesOn) {
+      bikeLayer.addTo(map);
+      bikeLayer.bringToBack();   // lanes glow under the camera dots
+    }
+  } catch { /* no lane data — skip silently */ }
+  finally {
+    bikeLanesLoading = false;
+    updateBikeLegend();
+  }
+}
+
+function setBikeLanes(on) {
+  bikeLanesOn = on;
+  $('#bikeLanesBtn').setAttribute('aria-pressed', String(on));
+  if (bikeLayer && map) {
+    if (on) {
+      bikeLayer.addTo(map);
+      bikeLayer.bringToBack();
+    } else {
+      bikeLayer.remove();
+    }
+  }
+  updateBikeLegend();
+}
+
+function updateBikeLegend() {
+  $('#bikeLegend').hidden = !(bikeLayer && bikeLanesOn && state.pickView === 'map');
+}
+
 function applyMapFilter(list) {
   if (!map) return;
   const keep = new Set(list.map((c) => c.id));
@@ -222,6 +291,7 @@ function setPickView(view, { notice } = {}) {
   const n = $('#pickNotice');
   n.textContent = notice || '';
   n.hidden = !notice;
+  updateBikeLegend();
   if (isMap) setTimeout(() => map.invalidateSize(), 60);
 }
 
@@ -325,6 +395,7 @@ function updateZoneUI() {
     : n < 3 ? `${n} point${n === 1 ? '' : 's'} — need at least 3`
     : `${n} points — double-click or press Done to close`;
   $('#doneZoneBtn').disabled = state.zoneClosed || n < 3;
+  $('#startWatchBtn').textContent = 'Start watching';
   $('#startWatchBtn').disabled = !state.zoneClosed;
   redrawZone();
 }
@@ -370,6 +441,7 @@ function redrawZone() {
 const watchCanvas = $('#watchCanvas');
 
 function enterWatch() {
+  btnSpinner($('#startWatchBtn'), 'Starting…');
   state.sessionId = crypto.randomUUID();
   state.watching = true;
   state.paused = false;
@@ -378,11 +450,13 @@ function enterWatch() {
   state.frameImg = null;
   state.prevZone = {};
   state.events = [];
+  clearLock();
   renderEvents();
   $('#reportCard').hidden = true;
   $('#reportErr').hidden = true;
   $('#reportBtn').disabled = false;
   $('#reportBtn').textContent = 'Get agent verdict';
+  state.lastReport = null;
   resetReportDecision();
   resetChat();
   closeTrace();
@@ -410,6 +484,9 @@ function stopWatching() {
 
 async function poll() {
   if (!state.watching || state.paused) return;
+  const slowTimer = setTimeout(() => {   // frame proxy stalling — say so in the HUD
+    $('#hudTime').textContent = 'SLOW FEED…';
+  }, 4000);
   try {
     const res = await fetch('/api/analyze', {
       method: 'POST',
@@ -428,12 +505,18 @@ async function poll() {
     hideNotice();
   } catch (err) {
     showNotice('Connection lost — retrying every 3 s…');
+  } finally {
+    clearTimeout(slowTimer);
   }
   state.pollTimer = setTimeout(poll, POLL_MS);
 }
 
 function onAnalysis(data) {
   state.framesAnalyzed += 1;
+  if (state.framesAnalyzed === 1) {   // first frame landed — Start button can settle
+    $('#startWatchBtn').textContent = 'Start watching';
+    $('#startWatchBtn').disabled = !state.zoneClosed;
+  }
   state.lastResult = data;
   fitWatchFrame();
   $('#watchWaiting').hidden = true;
@@ -449,6 +532,7 @@ function onAnalysis(data) {
   updateStats(data);
   updateBudget(data.budget);
   deriveEvents(data);
+  updateLock(data);
 }
 
 function setBanner(status) {
@@ -534,6 +618,102 @@ function renderEvents() {
   }
 }
 
+/* --- target lock: click a detection box to track one vehicle across frames --- */
+
+const LOCK_COLOR = '#39d0ff';
+const LOCK_LOST_FRAMES = 3;
+
+function lockSeconds(d) {
+  return (d.seenFrames ?? d.dwellFrames ?? 0) * SECONDS_PER_FRAME;
+}
+
+function setLock(d) {
+  state.lockedTrackId = d.trackId;
+  state.lockedClass = d.class;
+  state.lockedMissing = 0;
+  renderTargetLine(d);
+}
+
+function clearLock() {
+  state.lockedTrackId = null;
+  state.lockedClass = null;
+  state.lockedMissing = 0;
+  $('#targetRow').hidden = true;
+}
+
+function renderTargetLine(d) {
+  $('#targetRow').hidden = false;
+  $('#targetLine').textContent =
+    `TARGET: ${d.class} #${d.trackId} · ${d.blocking ? 'BLOCKING' : d.inZone ? 'in zone' : 'off zone'} · ${lockSeconds(d)}s`;
+}
+
+function updateLock(data) {
+  if (state.lockedTrackId == null) return;
+  const d = (data.detections || []).find((x) => x.trackId === state.lockedTrackId);
+  if (d) {
+    state.lockedMissing = 0;
+    renderTargetLine(d);
+  } else {
+    state.lockedMissing += 1;
+    if (state.lockedMissing > LOCK_LOST_FRAMES) {
+      addEvent(fmtTime(data.ts), `target ${state.lockedClass} #${state.lockedTrackId} lost`, 'leave', state.lockedClass);
+      renderEvents();
+      clearLock();
+    }
+  }
+}
+
+watchCanvas.addEventListener('click', (e) => {
+  const data = state.lastResult;
+  if (!data || !data.imageSize || !watchCanvas.clientWidth) return;
+  const px = e.offsetX * (data.imageSize.width / watchCanvas.clientWidth);
+  const py = e.offsetY * (data.imageSize.height / watchCanvas.clientHeight);
+  const dets = data.detections || [];
+  for (let i = dets.length - 1; i >= 0; i--) {   // last drawn = topmost
+    const d = dets[i], b = d.box;
+    if (!b || d.trackId == null) continue;
+    if (Math.abs(px - b.x) <= b.width / 2 && Math.abs(py - b.y) <= b.height / 2) {
+      state.lockedTrackId === d.trackId ? clearLock() : setLock(d);
+      return;
+    }
+  }
+});
+
+function drawLock(ctx, d, W, fontPx) {
+  const b = d.box;
+  const x = b.x - b.width / 2, y = b.y - b.height / 2;
+  ctx.save();
+  ctx.strokeStyle = LOCK_COLOR;
+  ctx.lineWidth = Math.max(3.5, W / 300);
+  ctx.strokeRect(x, y, b.width, b.height);
+
+  // corner crosshair ticks, extending outward
+  const t = Math.max(8, Math.min(b.width, b.height) * 0.22);
+  const g = Math.max(4, W / 250);            // gap outside the box
+  ctx.beginPath();
+  for (const [cx, cy, sx, sy] of [
+    [x, y, 1, 1], [x + b.width, y, -1, 1],
+    [x, y + b.height, 1, -1], [x + b.width, y + b.height, -1, -1],
+  ]) {
+    ctx.moveTo(cx - sx * g, cy - sy * g);
+    ctx.lineTo(cx - sx * g + sx * t, cy - sy * g);
+    ctx.moveTo(cx - sx * g, cy - sy * g);
+    ctx.lineTo(cx - sx * g, cy - sy * g + sy * t);
+  }
+  ctx.stroke();
+
+  const label = `LOCKED · ${d.class} #${d.trackId} · ${lockSeconds(d)}s`;
+  const pad = 3;
+  const tw = ctx.measureText(label).width;
+  const ly = Math.max(0, y - fontPx - pad * 2 - g);
+  const lx = Math.max(0, Math.min(x, W - tw - pad * 2));   // keep the label on-frame
+  ctx.fillStyle = LOCK_COLOR;
+  ctx.fillRect(lx, ly, tw + pad * 2, fontPx + pad * 2);
+  ctx.fillStyle = '#062733';
+  ctx.fillText(label, lx + pad, ly + pad);
+  ctx.restore();
+}
+
 /* --- canvas render loop: frame + zone + detection boxes --- */
 
 const DET_STYLE = {
@@ -601,8 +781,8 @@ function renderWatchFrame(now) {
       ctx.fill();
     }
 
-    // label: class + dwell seconds
-    if (d.inZone || d.blocking) {
+    // label: class + dwell seconds (the lock overlay draws its own label)
+    if ((d.inZone || d.blocking) && d.trackId !== state.lockedTrackId) {
       const dwell = (d.dwellFrames || 0) * SECONDS_PER_FRAME;
       const label = `${d.class}${dwell > 0 ? ' ' + dwell + 's' : ''}`;
       const pad = 3;
@@ -613,6 +793,12 @@ function renderWatchFrame(now) {
       ctx.fillStyle = '#141518';
       ctx.fillText(label, x + pad, ly + pad);
     }
+  }
+
+  // target-locked vehicle rides on top of everything
+  if (state.lockedTrackId != null) {
+    const locked = (data.detections || []).find((d) => d.trackId === state.lockedTrackId && d.box);
+    if (locked) drawLock(ctx, locked, W, fontPx);
   }
 }
 
@@ -669,8 +855,7 @@ function setReplay(on) {
 
 async function getReport() {
   const btn = $('#reportBtn');
-  btn.disabled = true;
-  btn.textContent = 'Agent is writing…';
+  btnSpinner(btn, 'Agent is writing…');
   $('#reportErr').hidden = true;
   try {
     const res = await fetch('/api/report', {
@@ -680,6 +865,7 @@ async function getReport() {
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
+    state.lastReport = data;
     $('#reportTime').textContent = fmtDateTime(data.generatedAt);
     $('#reportCam').textContent = `${state.camera.name} (id ${state.camera.id})`;
     $('#reportSource').textContent = data.source || 'agent';
@@ -703,6 +889,7 @@ async function getReport() {
 function resetReportDecision() {
   $('#reportActions').hidden = true;
   $('#approvedStamp').hidden = true;
+  $('#evidenceSec').hidden = true;
   $('#reportEdit').hidden = true;
   $('#reportBody').hidden = false;
 }
@@ -728,6 +915,7 @@ async function approveReport() {
     await postDecision({ action: 'approved' });
     $('#reportActions').hidden = true;
     $('#approvedStamp').hidden = false;
+    $('#evidenceSec').hidden = false;
   } catch { decisionError(); }
 }
 
@@ -752,8 +940,56 @@ async function saveEditReport() {
   try {
     await postDecision({ action: 'edited', editedText: text });
     $('#reportBody').textContent = text;
+    if (state.lastReport) state.lastReport.report = text;
     cancelEditReport();
   } catch { decisionError(); }
+}
+
+/* --- evidence bundle: approved report + trace + frame, one download --- */
+
+async function downloadEvidence() {
+  const btn = $('#evidenceBtn');
+  btn.disabled = true;
+  btn.textContent = 'Bundling…';
+  try {
+    let trace = state.traceEntries || [];
+    try {
+      const res = await fetch(`/api/trace?sessionId=${encodeURIComponent(state.sessionId || '')}&limit=200`);
+      if (res.ok) {
+        const data = await res.json();
+        trace = Array.isArray(data) ? data : (data.entries || data.trace || []);
+      }
+    } catch { /* trace is best-effort — bundle ships without it */ }
+
+    const cam = state.camera || {};
+    const rep = state.lastReport || {};
+    const bundle = {
+      camera: {
+        id: cam.id,
+        name: cam.name,
+        latitude: cam.latitude,
+        longitude: cam.longitude,
+        area: cam.area,
+      },
+      report: $('#reportBody').textContent,
+      reportSource: rep.source || null,
+      decision: 'approved',
+      generatedAt: new Date().toISOString(),
+      trace,
+      frameJpegDataUrl: (state.lastResult && state.lastResult.frame) || null,
+    };
+    if (rep.grounded !== undefined) bundle.grounded = rep.grounded;
+
+    const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `curbwatch-evidence-${cam.id || 'camera'}-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⬇ Evidence bundle';
+  }
 }
 
 async function discardReport() {
@@ -774,7 +1010,7 @@ function resetChat() {
   $('#chatNotice').hidden = true;
   $('#chatInput').value = '';
   $('#chatSend').disabled = false;
-  $('#chatSec').open = false;
+  $('#chatSec').open = true;   // discoverable by default in watch view
 }
 
 function chatBubble(cls, text) {
@@ -1070,6 +1306,15 @@ $('#editBtn').addEventListener('click', startEditReport);
 $('#cancelEditBtn').addEventListener('click', cancelEditReport);
 $('#saveEditBtn').addEventListener('click', saveEditReport);
 $('#discardBtn').addEventListener('click', discardReport);
+$('#evidenceBtn').addEventListener('click', downloadEvidence);
+$('#bikeLanesBtn').addEventListener('click', () => setBikeLanes(!bikeLanesOn));
+$('#unlockBtn').addEventListener('click', clearLock);
+for (const chip of document.querySelectorAll('.chip-suggest')) {
+  chip.addEventListener('click', () => {
+    if ($('#chatSend').disabled) return;
+    sendChat(chip.textContent);
+  });
+}
 
 $('#chatForm').addEventListener('submit', (e) => {
   e.preventDefault();

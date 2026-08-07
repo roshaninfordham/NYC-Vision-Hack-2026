@@ -206,6 +206,27 @@ button { font: inherit; color: inherit; cursor: pointer; background: none; borde
 }
 
 .view-toggle { display: flex; gap: 0; margin-left: auto; }
+
+/* bike-lane overlay toggle: goes green when lit, like the lanes it shows */
+.chip-lanes[aria-pressed="true"] {
+  color: #08130b;
+  background: var(--lane-green);
+  border-color: var(--lane-green);
+}
+
+.lane-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--steel);
+  padding: 0 0 0.6rem;
+}
+.legend-swatch { display: inline-block; width: 1.3rem; border-radius: 2px; flex: none; }
+.legend-protected { height: 3px; background: var(--lane-green); }
+.legend-standard  { height: 2px; background: var(--lane-green); opacity: 0.6; margin-left: 0.6rem; }
 .view-toggle .chip { border-radius: 2px 0 0 2px; }
 .view-toggle .chip + .chip { border-radius: 0 2px 2px 0; border-left: none; }
 
@@ -331,9 +352,25 @@ button { font: inherit; color: inherit; cursor: pointer; background: none; borde
 
 .btn-green  { background: var(--lane-green); color: #08130b; }
 .btn-yellow { background: var(--taxi); color: #171204; }
+.btn-red    { background: var(--blocked); color: var(--paint); }
 .btn-ghost  { border-color: var(--line); color: var(--paint); background: var(--asphalt-2); }
+.btn-red-ghost    { border-color: var(--blocked); color: var(--blocked); background: var(--asphalt-2); }
+.btn-yellow-ghost { border-color: var(--taxi); color: var(--taxi); background: var(--asphalt-2); }
 .btn-sm     { font-size: 0.75rem; padding: 0.45rem 0.8rem; }
 .btn-back   { color: var(--steel); }
+
+/* tiny inline spinner for async buttons */
+.spin {
+  display: inline-block;
+  width: 0.85em; height: 0.85em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  margin-right: 0.45em;
+  vertical-align: -0.1em;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 .side-panel {
   background: var(--asphalt-2);
@@ -590,6 +627,29 @@ body[data-view="watch"] .shell { padding-bottom: 0; }
   color: var(--steel);
 }
 
+/* target-lock readout: one tracked vehicle, CCTV style */
+#watchCanvas { cursor: crosshair; }
+.target-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border: 1px solid #1f4a5c;
+  background: #0d1d24;
+  border-radius: 3px;
+  padding: 0.4rem 0.6rem;
+}
+.target-line {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  color: #39d0ff;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.chip-unlock { border-color: #1f4a5c; color: #39d0ff; }
+.chip-unlock:hover { color: var(--paint); border-color: #39d0ff; }
+
 .report-sec, .log-sec { display: flex; flex-direction: column; gap: 0.75rem; }
 
 .report-err { font-family: var(--mono); font-size: 0.78rem; color: var(--blocked); }
@@ -683,6 +743,20 @@ body[data-view="watch"] .shell { padding-bottom: 0; }
 .stamp-word { display: block; font-weight: 800; font-size: 1.05rem; letter-spacing: 0.12em; }
 .stamp-sub  { display: block; font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.22em; }
 
+/* evidence bundle download, revealed once a human approves */
+.evidence-sec {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 0 0.8rem 0.7rem;
+}
+.evidence-note {
+  font-size: 0.65rem;
+  color: #5c594f;
+  letter-spacing: 0.05em;
+}
+
 /* ---------- Ask CurbWatch chat ---------- */
 
 .chat-sec { border-top: 1px solid var(--line); padding-top: 0.9rem; }
@@ -774,6 +848,22 @@ body[data-view="watch"] .shell { padding-bottom: 0; }
   border-radius: 3px;
 }
 .chat-form input:focus-visible { outline-offset: 0; border-color: var(--taxi); }
+
+.chat-suggest { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.55rem; }
+.chip-suggest {
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 0.75rem;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--steel);
+  border: 1px solid var(--line);
+  background: var(--asphalt-3);
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  transition: color 120ms, border-color 120ms;
+}
+.chip-suggest:hover { color: var(--taxi); border-color: var(--taxi); }
 
 /* ---------- agent trace drawer ---------- */
 
@@ -935,6 +1025,8 @@ body[data-view="watch"] .shell { padding-bottom: 0; }
 .toggle input:focus-visible + .toggle-track { outline: 2px solid var(--taxi); outline-offset: 2px; }
 
 .statusbar .btn { margin-left: auto; }
+.statusbar .btn + .btn { margin-left: 0; }
+.sb-privacy { color: #6a6f77; font-size: 0.7rem; letter-spacing: 0.04em; }
 
 /* ---------- motion safety ---------- */
 

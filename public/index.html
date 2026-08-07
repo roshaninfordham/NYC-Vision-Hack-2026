@@ -30,8 +30,8 @@
       <div class="hero">
         <p class="hero-eyebrow"><span aria-hidden="true">🗽</span> CurbWatch</p>
         <h1 class="hero-title">Is your bike lane <span class="hero-blocked">blocked</span> right now?</h1>
-        <p class="hero-lede">Pick one of NYC&rsquo;s 965 DOT traffic cameras, trace the lane once, and an agent
-        watches for vehicles parked where they shouldn&rsquo;t be &mdash; with a report you could hand to&nbsp;311.</p>
+        <p class="hero-lede">NYC already points 965 traffic cameras at its bike and bus lanes. CurbWatch turns any of
+        them into an enforcement-grade witness &mdash; for 311 triage, advocates, and anyone who needs proof, in any language.</p>
       </div>
 
       <div class="pick-controls">
@@ -49,9 +49,14 @@
           <button class="chip" id="mapViewBtn" aria-pressed="true">Map</button>
           <button class="chip" id="listViewBtn" aria-pressed="false">List</button>
         </div>
+        <button class="chip chip-lanes" id="bikeLanesBtn" aria-pressed="true" hidden>Bike lanes</button>
       </div>
 
       <p class="cam-count" id="camCount" aria-live="polite"></p>
+      <p class="lane-legend" id="bikeLegend" hidden>
+        <span class="legend-swatch legend-protected" aria-hidden="true"></span>protected lane / greenway
+        <span class="legend-swatch legend-standard" aria-hidden="true"></span>painted &amp; signed routes
+      </p>
       <p class="pick-notice" id="pickNotice" hidden></p>
 
       <div class="map-wrap" id="mapWrap">
@@ -98,8 +103,8 @@
           <div class="btn-col">
             <button class="btn btn-green" id="startWatchBtn" disabled>Start watching</button>
             <div class="btn-row">
-              <button class="btn btn-ghost" id="doneZoneBtn" disabled>Done</button>
-              <button class="btn btn-ghost" id="clearZoneBtn">Clear</button>
+              <button class="btn btn-green" id="doneZoneBtn" disabled>Done</button>
+              <button class="btn btn-red-ghost" id="clearZoneBtn">Clear</button>
               <button class="btn btn-ghost" id="refreshFrameBtn">New frame</button>
             </div>
             <button class="btn btn-ghost btn-back" id="backToPickBtn">&larr; Change camera</button>
@@ -136,6 +141,11 @@
             <div class="stat"><span class="stat-num" id="statPeople">0</span><span class="stat-label">people</span></div>
           </div>
 
+          <div class="target-row" id="targetRow" hidden>
+            <span class="target-line" id="targetLine"></span>
+            <button class="chip chip-unlock" id="unlockBtn" type="button">Unlock</button>
+          </div>
+
           <section class="report-sec" aria-label="Agent report">
             <h2 class="panel-title"><span class="lane-tick" aria-hidden="true"></span>Agent report</h2>
             <button class="btn btn-yellow" id="reportBtn">Get agent verdict</button>
@@ -159,18 +169,22 @@
               </div>
               <div class="report-actions" id="reportActions" hidden>
                 <button class="btn btn-green btn-sm" id="approveBtn">Approve</button>
-                <button class="btn btn-ghost btn-sm" id="editBtn">Edit</button>
-                <button class="btn btn-ghost btn-sm" id="discardBtn">Discard</button>
+                <button class="btn btn-yellow-ghost btn-sm" id="editBtn">Edit</button>
+                <button class="btn btn-red-ghost btn-sm" id="discardBtn">Discard</button>
               </div>
               <div class="stamp" id="approvedStamp" hidden>
                 <span class="stamp-word">Approved &#10003;</span>
                 <span class="stamp-sub">ready for 311</span>
               </div>
+              <div class="evidence-sec" id="evidenceSec" hidden>
+                <button class="btn btn-green btn-sm" id="evidenceBtn">&#11015; Evidence bundle</button>
+                <p class="evidence-note">Timestamped evidence for a 311 service request or FOIL-ready record.</p>
+              </div>
               <footer class="report-foot">Draft for a 311 service request &mdash; a human signs off before anything is filed.</footer>
             </article>
           </section>
 
-          <details class="chat-sec" id="chatSec">
+          <details class="chat-sec" id="chatSec" open>
             <summary class="chat-summary">
               <h2 class="panel-title"><span class="lane-tick" aria-hidden="true"></span>Ask CurbWatch</h2>
               <span class="chat-caret" aria-hidden="true">&#9656;</span>
@@ -184,6 +198,11 @@
                       aria-label="Ask by voice" aria-pressed="false">&#127908;</button>
               <button class="btn btn-yellow btn-sm" type="submit" id="chatSend">Send</button>
             </form>
+            <div class="chat-suggest" id="chatSuggest" role="group" aria-label="Suggested questions">
+              <button class="chip chip-suggest" type="button">What&rsquo;s happening here?</button>
+              <button class="chip chip-suggest" type="button">&iquest;Est&aacute; bloqueado el carril?</button>
+              <button class="chip chip-suggest" type="button">Generate a report</button>
+            </div>
             <label class="toggle chat-tts" id="ttsWrap">
               <input type="checkbox" id="ttsToggle" />
               <span class="toggle-track" aria-hidden="true"></span>
@@ -213,8 +232,9 @@
           <span class="toggle-track" aria-hidden="true"></span>
           Replay mode
         </label>
+        <span class="sb-item sb-privacy">Detects vehicle types only &mdash; no plates, no faces, by design.</span>
         <button class="btn btn-ghost btn-sm" id="traceBtn" aria-expanded="false">&#9881; Agent trace (JSONL)</button>
-        <button class="btn btn-ghost btn-sm" id="stopBtn">Stop &mdash; edit zone</button>
+        <button class="btn btn-red btn-sm" id="stopBtn">Stop &mdash; edit zone</button>
       </footer>
 
       <div class="trace-drawer" id="traceDrawer" aria-label="Agent trace" role="region">
