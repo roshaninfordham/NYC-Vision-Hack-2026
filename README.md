@@ -9,7 +9,7 @@ Built in one evening at [AI Tinkerers NYC — Vision Hack v.2](https://nyc.aitin
 
 **Live demo:** https://curbwatch-631243785209.us-central1.run.app
 
-![All 965 DOT cameras on a dark city map](docs/screenshots/landing-map.png)
+![All 965 DOT cameras over NYC's bike-lane network](docs/screenshots/map-bikelanes.png)
 
 ![Watch mode on a live DOT frame — truck detected in the traced lane with dwell timer](docs/screenshots/state3-live.png)
 
@@ -48,12 +48,15 @@ already owns.**
 
 ## Three features, nothing more
 
-1. **Pick a camera, trace the lane** — every DOT camera on a dark city map (search,
-   borough fly-to; list view one toggle away), then draw the lane zone once as a
-   polygon on the live frame.
+1. **Pick a camera, trace the lane** — every DOT camera on a dark city map, laid over
+   **NYC's entire bike-lane network** (NYC Open Data, 29,695 segments) so you can see
+   which cameras actually watch a protected lane. Search, borough fly-to, then draw the
+   lane zone once on the live frame.
 2. **Watch it** — CurbWatch polls a frame every 3 s, runs object detection, and tracks each
    vehicle across frames (IoU matching). A vehicle whose footprint sits inside your zone
-   for ≥3 consecutive frames is **blocking**; one passing through is ignored.
+   for ≥3 consecutive frames is **blocking**; one passing through is ignored. **Click any
+   vehicle to target-lock it** — a crosshair follows that specific object across frames
+   with a live dwell clock, and tells you when it leaves.
 3. **Ask the agent — in any language** — a Gemini-powered agent answers free-form
    questions ("is there a camera at Times Square?", "¿está bloqueado el carril?") by
    choosing its own tools, with press-to-talk voice in/out. Reports are **grounded**:
@@ -64,6 +67,11 @@ already owns.**
 Every LLM call, tool call, verdict, and human decision is appended to a **JSONL trace**
 (`trace/agent-trace.jsonl`), viewable and downloadable in-app — the raw material for
 evaluating and improving the agent, and an honest window into what it actually did.
+
+An approved report exports as a one-click **evidence bundle**: camera identity and
+coordinates, the grounded report, the human decision, the full agent trace, and the
+keyframe itself in a single timestamped JSON file — ready to attach to a 311 service
+request or keep as a FOIL-friendly record.
 
 ## Architecture
 
@@ -201,10 +209,12 @@ borough chips fly the map there. (List view: one toggle.)
 |---|---|
 
 **2 — Trace the lane on a live frame, then watch.** The truck below is real — detected
-on Central Park West with its dwell timer, inside the traced zone.
+on Central Park West with its dwell timer, inside the traced zone. Click any vehicle to
+target-lock it (cyan crosshair) and follow that one object across frames.
 
 | ![Lane tracing on a live frame](docs/screenshots/state2-live.png) | ![Live watch — truck in zone](docs/screenshots/state3-live.png) |
 |---|---|
+| ![Target-locked vehicle](docs/screenshots/target-lock.png) | ![Semantic button states](docs/screenshots/draw-buttons.png) |
 
 **3 — Ask the agent, sign off the report.** Voice or text, any language; the report is
 grounded in the actual frame and stamped by a human before it goes anywhere.
@@ -217,11 +227,21 @@ tool call, verdict, and human decision — downloadable for offline evaluation.
 
 ![JSONL agent trace drawer](docs/screenshots/feat-trace.png)
 
-## Privacy
+## Privacy — a deliberate design choice
 
-Frames are low-resolution public DOT feeds (352×240). CurbWatch detects *classes*
-(car, truck, bus, person counts) — it does not and cannot identify people or read
-plates. Nothing persists beyond an in-memory session and the committed demo replay.
+Frames are low-resolution public DOT feeds (352×240). CurbWatch detects **vehicle
+classes and counts** — car, truck, bus, motorcycle, plus people as context. It does
+**not** read license plates, identify individuals, or run face recognition, and we
+did not build it to. That is a design decision, not a missing feature:
+
+- The enforcement question is *"is the lane blocked, and for how long?"* — a class and
+  a clock answer it. Identity adds risk without adding evidence.
+- Evidence bundles record **where and when**, not **who** — which is what a 311 request
+  or a lane-design study actually needs.
+- Nothing persists beyond an in-memory session and the committed demo replay.
+
+The UI states this to the user: *"Detects vehicle types only — no plates, no faces,
+by design."*
 
 ## Stack
 
