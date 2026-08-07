@@ -1,0 +1,1330 @@
+[
+  {
+    "time": 0.011972539010457695,
+    "image": {
+      "width": 352,
+      "height": 240
+    },
+    "predictions": [
+      {
+        "x": 183.5,
+        "y": 144,
+        "width": 41,
+        "height": 32,
+        "confidence": 0.8904610872268677,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "0a880a5a-f9a0-4d3c-ae1c-bb48b1c17d61"
+      },
+      {
+        "x": 147,
+        "y": 116.5,
+        "width": 58,
+        "height": 37,
+        "confidence": 0.8085569143295288,
+        "class": "bus",
+        "class_id": 5,
+        "detection_id": "5a3ab2c5-7b14-4a22-8937-16301dcb4aae"
+      },
+      {
+        "x": 153.5,
+        "y": 135.5,
+        "width": 41,
+        "height": 27,
+        "confidence": 0.7981944680213928,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "4d3f8afc-e9d8-4fe0-ba3f-8dc79c6934f9"
+      },
+      {
+        "x": 347.5,
+        "y": 157.5,
+        "width": 9,
+        "height": 25,
+        "confidence": 0.766143798828125,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "fb856b0a-e0cc-4a20-bd81-8459bb2d5109"
+      },
+      {
+        "x": 25.5,
+        "y": 154,
+        "width": 11,
+        "height": 22,
+        "confidence": 0.7376673221588135,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "c1df8656-7c8a-4b70-92fe-979ecc42a406"
+      },
+      {
+        "x": 208.5,
+        "y": 126,
+        "width": 23,
+        "height": 20,
+        "confidence": 0.7098868489265442,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "4e482fcb-c3ea-4b9b-8fbc-548353d86efb"
+      },
+      {
+        "x": 262,
+        "y": 111.5,
+        "width": 20,
+        "height": 23,
+        "confidence": 0.5104597806930542,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "b3b75a3f-a074-4ad0-83bf-a9b809f2b9b6"
+      },
+      {
+        "x": 185,
+        "y": 118.5,
+        "width": 24,
+        "height": 17,
+        "confidence": 0.47368907928466797,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "b3026f8b-d8c3-4091-905e-e80c049173f8"
+      },
+      {
+        "x": 286,
+        "y": 96,
+        "width": 14,
+        "height": 12,
+        "confidence": 0.3926370143890381,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "fc5164ee-5b11-4100-9497-5937fd0cdd2f"
+      }
+    ]
+  },
+  {
+    "time": 0.011301719932816923,
+    "image": {
+      "width": 352,
+      "height": 240
+    },
+    "predictions": [
+      {
+        "x": 184,
+        "y": 144,
+        "width": 40,
+        "height": 32,
+        "confidence": 0.8920724987983704,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "59d9f8a4-0e25-415e-83a5-3e956d0da888"
+      },
+      {
+        "x": 153.5,
+        "y": 135.5,
+        "width": 41,
+        "height": 27,
+        "confidence": 0.8627629280090332,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "8fc3eec8-dd72-4324-ab98-1814e63ef5bd"
+      },
+      {
+        "x": 147,
+        "y": 117,
+        "width": 58,
+        "height": 38,
+        "confidence": 0.8316296935081482,
+        "class": "bus",
+        "class_id": 5,
+        "detection_id": "42874caf-2a54-461b-b48d-46ac0f0b4aa8"
+      },
+      {
+        "x": 208.5,
+        "y": 125,
+        "width": 23,
+        "height": 20,
+        "confidence": 0.76461261510849,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "37b0e38c-659f-4540-b7db-30c9c588ec97"
+      },
+      {
+        "x": 185,
+        "y": 118.5,
+        "width": 24,
+        "height": 17,
+        "confidence": 0.6457491517066956,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "57d40860-8451-484f-9617-25c065bd8473"
+      },
+      {
+        "x": 334.5,
+        "y": 157,
+        "width": 13,
+        "height": 26,
+        "confidence": 0.5805803537368774,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "f31fb954-d0ef-48a1-9718-8a7fd55cfcd7"
+      },
+      {
+        "x": 264.5,
+        "y": 98.5,
+        "width": 15,
+        "height": 15,
+        "confidence": 0.3996555805206299,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "17ab9b3d-ad99-49c1-8668-5fff956fa4a1"
+      },
+      {
+        "x": 25,
+        "y": 154,
+        "width": 10,
+        "height": 24,
+        "confidence": 0.3891512155532837,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "a732d3e8-f3f6-408f-92b9-e4f0171789a6"
+      }
+    ]
+  },
+  {
+    "time": 0.011577634024433792,
+    "image": {
+      "width": 352,
+      "height": 240
+    },
+    "predictions": [
+      {
+        "x": 184,
+        "y": 143.5,
+        "width": 40,
+        "height": 31,
+        "confidence": 0.9030659198760986,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "56b7b64b-eac7-4934-b6c7-3311231d8184"
+      },
+      {
+        "x": 255.5,
+        "y": 118,
+        "width": 19,
+        "height": 16,
+        "confidence": 0.8650230765342712,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "1f7f70d6-d330-49a7-a77d-34f8b28114d2"
+      },
+      {
+        "x": 153.5,
+        "y": 135.5,
+        "width": 41,
+        "height": 27,
+        "confidence": 0.8478233218193054,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "9d5b3089-12f5-4117-aa54-26ab079bd022"
+      },
+      {
+        "x": 147.5,
+        "y": 116.5,
+        "width": 59,
+        "height": 37,
+        "confidence": 0.7849868535995483,
+        "class": "bus",
+        "class_id": 5,
+        "detection_id": "87144391-8af1-4761-a847-99620edef89f"
+      },
+      {
+        "x": 267,
+        "y": 86.5,
+        "width": 8,
+        "height": 9,
+        "confidence": 0.7579935193061829,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "8d15ba60-d0d0-49f9-b098-8a0cff88b934"
+      },
+      {
+        "x": 213.5,
+        "y": 201.5,
+        "width": 65,
+        "height": 61,
+        "confidence": 0.7389199733734131,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "ee73d954-5a38-4fc0-8254-38822dae5c6c"
+      },
+      {
+        "x": 208.5,
+        "y": 125.5,
+        "width": 23,
+        "height": 19,
+        "confidence": 0.6713500022888184,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "08bc2cd8-3aac-4c86-8dab-862e164f7ca8"
+      },
+      {
+        "x": 185,
+        "y": 118.5,
+        "width": 24,
+        "height": 17,
+        "confidence": 0.5741326808929443,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "906fce54-f53e-49ef-bb06-160cdca42de0"
+      },
+      {
+        "x": 341.5,
+        "y": 150.5,
+        "width": 9,
+        "height": 13,
+        "confidence": 0.5459250211715698,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "fe749a0c-23d6-4bca-ac62-6543e06376e8"
+      },
+      {
+        "x": 315.5,
+        "y": 195,
+        "width": 73,
+        "height": 84,
+        "confidence": 0.5300210118293762,
+        "class": "truck",
+        "class_id": 7,
+        "detection_id": "bab02ee0-0655-45f5-90ad-ebb4c953413b"
+      },
+      {
+        "x": 315.5,
+        "y": 195,
+        "width": 73,
+        "height": 84,
+        "confidence": 0.4378354549407959,
+        "class": "bus",
+        "class_id": 5,
+        "detection_id": "20a47229-6ca4-4a99-a4a4-d87286abd61c"
+      },
+      {
+        "x": 24.5,
+        "y": 154,
+        "width": 11,
+        "height": 22,
+        "confidence": 0.34528040885925293,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "cfcb5057-b926-4559-bcc8-c5f4ff164bb7"
+      }
+    ]
+  },
+  {
+    "time": 0.012317531974986196,
+    "image": {
+      "width": 352,
+      "height": 240
+    },
+    "predictions": [
+      {
+        "x": 128.5,
+        "y": 149.5,
+        "width": 53,
+        "height": 33,
+        "confidence": 0.9160829186439514,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "e430bfd3-da19-4a06-bc4b-4b865a03ec79"
+      },
+      {
+        "x": 311,
+        "y": 148,
+        "width": 62,
+        "height": 72,
+        "confidence": 0.9079987406730652,
+        "class": "bus",
+        "class_id": 5,
+        "detection_id": "78e59f64-c179-4d83-b7ba-e9eb8bde3873"
+      },
+      {
+        "x": 222,
+        "y": 152.5,
+        "width": 62,
+        "height": 71,
+        "confidence": 0.8612939715385437,
+        "class": "truck",
+        "class_id": 7,
+        "detection_id": "77883341-0a1f-4a5f-bfb0-05f10a36cfc1"
+      },
+      {
+        "x": 179.5,
+        "y": 122.5,
+        "width": 27,
+        "height": 19,
+        "confidence": 0.7878038883209229,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "54d93653-a099-440d-8624-2018d6233298"
+      },
+      {
+        "x": 145.5,
+        "y": 117,
+        "width": 59,
+        "height": 38,
+        "confidence": 0.7838477492332458,
+        "class": "bus",
+        "class_id": 5,
+        "detection_id": "a7843565-5f1f-4da6-bdff-3460ebf3ab29"
+      },
+      {
+        "x": 44.5,
+        "y": 140,
+        "width": 9,
+        "height": 20,
+        "confidence": 0.7791476249694824,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "a7c399be-6720-4ffc-972e-20326f81560d"
+      },
+      {
+        "x": 260,
+        "y": 101,
+        "width": 14,
+        "height": 12,
+        "confidence": 0.6203653812408447,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "9aeb5e17-7fd3-45ec-b478-c764c9fcfbaf"
+      },
+      {
+        "x": 264.5,
+        "y": 91.5,
+        "width": 9,
+        "height": 9,
+        "confidence": 0.5520765781402588,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "95a31a43-1b2d-42a0-8e3b-746f861b7500"
+      },
+      {
+        "x": 31.5,
+        "y": 140,
+        "width": 9,
+        "height": 20,
+        "confidence": 0.3887627124786377,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "00217923-c82e-4dc8-ab58-e406062aca36"
+      },
+      {
+        "x": 178.5,
+        "y": 144,
+        "width": 31,
+        "height": 32,
+        "confidence": 0.3511248230934143,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "3cd7192d-a28a-4fac-a2e6-e2dea3f78f75"
+      },
+      {
+        "x": 178.5,
+        "y": 144,
+        "width": 31,
+        "height": 32,
+        "confidence": 0.3379943370819092,
+        "class": "truck",
+        "class_id": 7,
+        "detection_id": "89cc7430-bd5b-49b6-b529-cd03d953c97e"
+      },
+      {
+        "x": 21.5,
+        "y": 153,
+        "width": 11,
+        "height": 24,
+        "confidence": 0.3280366063117981,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "90ddc7ec-9f1c-47cb-b504-b24b73679c7b"
+      }
+    ]
+  },
+  {
+    "time": 0.011784665985032916,
+    "image": {
+      "width": 352,
+      "height": 240
+    },
+    "predictions": [
+      {
+        "x": 33.5,
+        "y": 205,
+        "width": 67,
+        "height": 66,
+        "confidence": 0.924018144607544,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "93a8a9d8-fb38-455a-9e7f-54a01e1f09c4"
+      },
+      {
+        "x": 231,
+        "y": 168,
+        "width": 40,
+        "height": 34,
+        "confidence": 0.9148625731468201,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "01c934ae-2c55-4125-991d-3782f58b7a33"
+      },
+      {
+        "x": 172.5,
+        "y": 151.5,
+        "width": 47,
+        "height": 39,
+        "confidence": 0.9060071706771851,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "8e559819-4a6e-4924-9685-ce64854a9265"
+      },
+      {
+        "x": 247.5,
+        "y": 110,
+        "width": 25,
+        "height": 30,
+        "confidence": 0.8654245734214783,
+        "class": "truck",
+        "class_id": 7,
+        "detection_id": "6058483e-fddc-46df-92a0-3c2ea0dd6b31"
+      },
+      {
+        "x": 203.5,
+        "y": 128,
+        "width": 29,
+        "height": 22,
+        "confidence": 0.8063228726387024,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "e5b378bc-85d2-41e1-b15a-241d6d68f7ea"
+      },
+      {
+        "x": 138.5,
+        "y": 119.5,
+        "width": 61,
+        "height": 39,
+        "confidence": 0.7077385783195496,
+        "class": "bus",
+        "class_id": 5,
+        "detection_id": "b0e1ea6d-4e1c-419f-8a46-25cec1bbf3bc"
+      },
+      {
+        "x": 29,
+        "y": 145.5,
+        "width": 8,
+        "height": 21,
+        "confidence": 0.6897161602973938,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "a5afba87-228e-4c14-89d9-4df370b4a7f3"
+      },
+      {
+        "x": 155.5,
+        "y": 135,
+        "width": 37,
+        "height": 24,
+        "confidence": 0.6834321022033691,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "d91e9025-a6bb-4f78-9ec2-c9ca4a429a95"
+      },
+      {
+        "x": 301,
+        "y": 128.5,
+        "width": 38,
+        "height": 35,
+        "confidence": 0.6741543412208557,
+        "class": "bus",
+        "class_id": 5,
+        "detection_id": "7f11351c-8152-4c44-ae32-7e418dfacff3"
+      },
+      {
+        "x": 207,
+        "y": 107,
+        "width": 18,
+        "height": 12,
+        "confidence": 0.6110658645629883,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "51a99e46-38f6-49d7-8c4c-f0e93995f6bd"
+      },
+      {
+        "x": 6.5,
+        "y": 156,
+        "width": 9,
+        "height": 24,
+        "confidence": 0.5523267984390259,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "f9f9f371-faa0-4067-8deb-4f82a2d9a6f1"
+      },
+      {
+        "x": 16,
+        "y": 147.5,
+        "width": 10,
+        "height": 23,
+        "confidence": 0.48845791816711426,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "d6656e39-1d77-460a-bdc0-26553b80f730"
+      },
+      {
+        "x": 188.5,
+        "y": 119.5,
+        "width": 21,
+        "height": 15,
+        "confidence": 0.3784705400466919,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "1a99183f-d98e-4164-afb8-b8a465d8a5d9"
+      }
+    ]
+  },
+  {
+    "time": 0.013303992920555174,
+    "image": {
+      "width": 352,
+      "height": 240
+    },
+    "predictions": [
+      {
+        "x": 71,
+        "y": 184,
+        "width": 80,
+        "height": 48,
+        "confidence": 0.9139129519462585,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "5adae178-ab27-4959-aad3-3c18f8618b41"
+      },
+      {
+        "x": 109,
+        "y": 132.5,
+        "width": 84,
+        "height": 53,
+        "confidence": 0.9118852019309998,
+        "class": "bus",
+        "class_id": 5,
+        "detection_id": "10b0ab3c-2416-41c9-8fb0-f69c95f91251"
+      },
+      {
+        "x": 181.5,
+        "y": 146.5,
+        "width": 41,
+        "height": 33,
+        "confidence": 0.8676679134368896,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "ee9c1bc1-ba07-4631-bd2d-1af573bb0f53"
+      },
+      {
+        "x": 246,
+        "y": 137.5,
+        "width": 30,
+        "height": 27,
+        "confidence": 0.8622913360595703,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "99861f0c-1c80-4594-a0c9-9549382ad91b"
+      },
+      {
+        "x": 124.5,
+        "y": 188.5,
+        "width": 73,
+        "height": 59,
+        "confidence": 0.8102259635925293,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "201112f0-22f6-45f0-83dd-68340fd5ae00"
+      },
+      {
+        "x": 349.5,
+        "y": 158.5,
+        "width": 5,
+        "height": 25,
+        "confidence": 0.7726913690567017,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "89b8ca97-2aed-49ef-ad71-170eb2818471"
+      },
+      {
+        "x": 163,
+        "y": 133,
+        "width": 34,
+        "height": 24,
+        "confidence": 0.7629075646400452,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "528acfb6-4218-442b-a493-e6699fc02e37"
+      },
+      {
+        "x": 26,
+        "y": 144.5,
+        "width": 10,
+        "height": 21,
+        "confidence": 0.7212698459625244,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "4941940c-7598-4872-b62a-138fab4e273b"
+      },
+      {
+        "x": 297.5,
+        "y": 120,
+        "width": 31,
+        "height": 32,
+        "confidence": 0.6811541318893433,
+        "class": "bus",
+        "class_id": 5,
+        "detection_id": "e9d78f4c-bbe0-4e69-bd9f-e5ef83535f98"
+      },
+      {
+        "x": 260,
+        "y": 98.5,
+        "width": 10,
+        "height": 9,
+        "confidence": 0.6601862907409668,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "c0f849b4-71a8-429b-a01c-1b814b3dd920"
+      },
+      {
+        "x": 202,
+        "y": 107.5,
+        "width": 20,
+        "height": 15,
+        "confidence": 0.545320987701416,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "b93cb9b4-aa0b-488a-8342-0b44538e9195"
+      },
+      {
+        "x": 188.5,
+        "y": 229,
+        "width": 73,
+        "height": 22,
+        "confidence": 0.31487947702407837,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "314106e6-89ae-4ef1-9070-5e5809aefe42"
+      }
+    ]
+  },
+  {
+    "time": 0.011552814044989645,
+    "image": {
+      "width": 352,
+      "height": 240
+    },
+    "predictions": [
+      {
+        "x": 97.5,
+        "y": 137,
+        "width": 131,
+        "height": 72,
+        "confidence": 0.9393893480300903,
+        "class": "bus",
+        "class_id": 5,
+        "detection_id": "e23045ac-bd9a-4b66-b3cc-d67516da0618"
+      },
+      {
+        "x": 170.5,
+        "y": 155,
+        "width": 47,
+        "height": 38,
+        "confidence": 0.8856398463249207,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "ab9e0f83-9529-4a32-8f96-d33dd6bddee3"
+      },
+      {
+        "x": 33.5,
+        "y": 207,
+        "width": 67,
+        "height": 62,
+        "confidence": 0.8649323582649231,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "09260db7-2cfd-447b-a83a-9d469aecc21d"
+      },
+      {
+        "x": 97,
+        "y": 207.5,
+        "width": 90,
+        "height": 65,
+        "confidence": 0.8627210855484009,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "c6df1c3b-9e47-4013-9b67-c9e862f9017e"
+      },
+      {
+        "x": 238,
+        "y": 144.5,
+        "width": 32,
+        "height": 29,
+        "confidence": 0.8264077305793762,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "b02cb8fe-b2e8-4ae3-b343-923421a3f5e8"
+      },
+      {
+        "x": 349.5,
+        "y": 158.5,
+        "width": 5,
+        "height": 25,
+        "confidence": 0.7836512327194214,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "d389fb8e-fdd8-4242-a4b9-5a0e29fbeca6"
+      },
+      {
+        "x": 255,
+        "y": 108.5,
+        "width": 16,
+        "height": 15,
+        "confidence": 0.7659966945648193,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "283dc81f-18ae-413f-b5d5-319754034733"
+      },
+      {
+        "x": 297,
+        "y": 119.5,
+        "width": 32,
+        "height": 31,
+        "confidence": 0.6111302375793457,
+        "class": "bus",
+        "class_id": 5,
+        "detection_id": "69567bce-44df-464c-86bc-d1d96e84d4cc"
+      },
+      {
+        "x": 175.5,
+        "y": 124,
+        "width": 31,
+        "height": 22,
+        "confidence": 0.5854902267456055,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "1cfac3f6-c1c0-42d1-94f6-ec2f9097090d"
+      },
+      {
+        "x": 263.5,
+        "y": 87,
+        "width": 9,
+        "height": 14,
+        "confidence": 0.4044782519340515,
+        "class": "truck",
+        "class_id": 7,
+        "detection_id": "4a6afcc0-b29c-40f2-b8ca-5e12a346b470"
+      }
+    ]
+  },
+  {
+    "time": 0.011492031975649297,
+    "image": {
+      "width": 352,
+      "height": 240
+    },
+    "predictions": [
+      {
+        "x": 68.5,
+        "y": 161,
+        "width": 137,
+        "height": 104,
+        "confidence": 0.9555399417877197,
+        "class": "bus",
+        "class_id": 5,
+        "detection_id": "e2d03960-9dfc-43aa-baeb-b350b1a43b60"
+      },
+      {
+        "x": 154,
+        "y": 171,
+        "width": 56,
+        "height": 46,
+        "confidence": 0.9080541729927063,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "12a61fa8-1937-4ffd-86bd-616eb83033e7"
+      },
+      {
+        "x": 240,
+        "y": 144.5,
+        "width": 30,
+        "height": 23,
+        "confidence": 0.8793255090713501,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "8551bf6a-8ce3-4df9-9d15-df9585989835"
+      },
+      {
+        "x": 79,
+        "y": 214.5,
+        "width": 90,
+        "height": 51,
+        "confidence": 0.8285550475120544,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "593e3443-4208-4ced-ac87-42d2b8097bd9"
+      },
+      {
+        "x": 347.5,
+        "y": 160.5,
+        "width": 9,
+        "height": 27,
+        "confidence": 0.814247727394104,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "89ed9f57-1dae-4efb-b643-8bedbe210765"
+      },
+      {
+        "x": 146.5,
+        "y": 142,
+        "width": 43,
+        "height": 38,
+        "confidence": 0.7531245946884155,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "bd06578b-a506-4e1e-8a06-9d02864761c4"
+      },
+      {
+        "x": 250.5,
+        "y": 114,
+        "width": 19,
+        "height": 18,
+        "confidence": 0.6833400726318359,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "be1f5dca-9735-40a5-9604-9ad72ae9363e"
+      },
+      {
+        "x": 297,
+        "y": 120,
+        "width": 32,
+        "height": 32,
+        "confidence": 0.6825917363166809,
+        "class": "bus",
+        "class_id": 5,
+        "detection_id": "04f9a5ee-7e0d-48c3-8c6e-b2e4ef1bae63"
+      },
+      {
+        "x": 258.5,
+        "y": 99,
+        "width": 11,
+        "height": 10,
+        "confidence": 0.6793820858001709,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "a243b0f0-eb2a-47f8-a101-a1bd78a10fac"
+      },
+      {
+        "x": 264.5,
+        "y": 89,
+        "width": 9,
+        "height": 8,
+        "confidence": 0.3992060422897339,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "0f74eabf-9890-4548-83ea-fd05e943ec80"
+      }
+    ]
+  },
+  {
+    "time": 0.013311194023117423,
+    "image": {
+      "width": 352,
+      "height": 240
+    },
+    "predictions": [
+      {
+        "x": 58.5,
+        "y": 163.5,
+        "width": 117,
+        "height": 95,
+        "confidence": 0.9619279503822327,
+        "class": "bus",
+        "class_id": 5,
+        "detection_id": "4c36b257-466f-4d41-b302-f7569b141fc7"
+      },
+      {
+        "x": 149.5,
+        "y": 174.5,
+        "width": 57,
+        "height": 49,
+        "confidence": 0.9271701574325562,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "448d8dba-79ff-41cf-9614-b54bcd3d1d6f"
+      },
+      {
+        "x": 237,
+        "y": 142,
+        "width": 30,
+        "height": 22,
+        "confidence": 0.8837218880653381,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "6724f1b6-6666-4887-8fb2-2dc05d4e27b0"
+      },
+      {
+        "x": 255,
+        "y": 111.5,
+        "width": 16,
+        "height": 13,
+        "confidence": 0.8473902344703674,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "32c90f89-41ee-4b42-ba35-6843130f47fa"
+      },
+      {
+        "x": 347.5,
+        "y": 160.5,
+        "width": 9,
+        "height": 27,
+        "confidence": 0.8057629466056824,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "9e97e9c6-8627-4b54-b60f-53a8cb4b91ea"
+      },
+      {
+        "x": 297,
+        "y": 119.5,
+        "width": 32,
+        "height": 31,
+        "confidence": 0.7238250970840454,
+        "class": "bus",
+        "class_id": 5,
+        "detection_id": "0c3a7f11-1c6c-4db0-9f4f-ddad0502b93d"
+      },
+      {
+        "x": 257.5,
+        "y": 99.5,
+        "width": 13,
+        "height": 11,
+        "confidence": 0.6639360785484314,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "76409037-d091-4cbd-bb25-d6f32de91858"
+      },
+      {
+        "x": 77.5,
+        "y": 216.5,
+        "width": 89,
+        "height": 47,
+        "confidence": 0.6413782835006714,
+        "class": "truck",
+        "class_id": 7,
+        "detection_id": "de283825-adaf-460a-9de1-b643c52f1585"
+      },
+      {
+        "x": 261,
+        "y": 91,
+        "width": 10,
+        "height": 8,
+        "confidence": 0.564916729927063,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "8214b0c9-ebf0-418a-a2ac-ccef8e3b9a75"
+      }
+    ]
+  },
+  {
+    "time": 0.012006809003651142,
+    "image": {
+      "width": 352,
+      "height": 240
+    },
+    "predictions": [
+      {
+        "x": 150,
+        "y": 203.5,
+        "width": 54,
+        "height": 67,
+        "confidence": 0.900098443031311,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "764873cc-9169-47df-ab19-9e191f430f3b"
+      },
+      {
+        "x": 255,
+        "y": 115.5,
+        "width": 18,
+        "height": 13,
+        "confidence": 0.8936425447463989,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "989f6bdb-fa35-45c7-b09b-4053b238c3ee"
+      },
+      {
+        "x": 347.5,
+        "y": 160.5,
+        "width": 9,
+        "height": 27,
+        "confidence": 0.7904334664344788,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "226b967a-b914-49e7-9320-3a0ba236262d"
+      },
+      {
+        "x": 297,
+        "y": 119.5,
+        "width": 32,
+        "height": 31,
+        "confidence": 0.708156406879425,
+        "class": "bus",
+        "class_id": 5,
+        "detection_id": "6650403b-6572-45fc-a66d-0cca92c64c8d"
+      },
+      {
+        "x": 7.5,
+        "y": 182,
+        "width": 15,
+        "height": 58,
+        "confidence": 0.4611501693725586,
+        "class": "truck",
+        "class_id": 7,
+        "detection_id": "59512a1e-0b4c-4817-9f59-a083bc92f959"
+      },
+      {
+        "x": 31,
+        "y": 145.5,
+        "width": 6,
+        "height": 19,
+        "confidence": 0.4258272051811218,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "27ae66a1-4047-4a2d-a3c3-b4d21915c689"
+      },
+      {
+        "x": 293,
+        "y": 102,
+        "width": 18,
+        "height": 10,
+        "confidence": 0.41364622116088867,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "702cb28f-ea2e-4a34-9ee3-30eaf1288f1d"
+      },
+      {
+        "x": 3.5,
+        "y": 148,
+        "width": 7,
+        "height": 16,
+        "confidence": 0.38137954473495483,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "ae3bcde2-2db6-476b-8889-ead8ea456aa9"
+      },
+      {
+        "x": 260,
+        "y": 97,
+        "width": 10,
+        "height": 8,
+        "confidence": 0.3064126968383789,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "7fce8acd-fc1a-42a1-80bc-20b33ccb4c1c"
+      },
+      {
+        "x": 88.5,
+        "y": 134,
+        "width": 5,
+        "height": 18,
+        "confidence": 0.3041152358055115,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "085371db-7a32-4d61-bcd7-beef30b242c3"
+      }
+    ]
+  },
+  {
+    "time": 0.011567094014026225,
+    "image": {
+      "width": 352,
+      "height": 240
+    },
+    "predictions": [
+      {
+        "x": 178.5,
+        "y": 217,
+        "width": 85,
+        "height": 46,
+        "confidence": 0.8797449469566345,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "ee705e51-6542-47f4-a0e0-70aa2d9ff749"
+      },
+      {
+        "x": 347.5,
+        "y": 160.5,
+        "width": 9,
+        "height": 27,
+        "confidence": 0.806087076663971,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "3ae91f3e-ac6e-4611-a296-375787a4e3f3"
+      },
+      {
+        "x": 297,
+        "y": 119.5,
+        "width": 32,
+        "height": 31,
+        "confidence": 0.7632935643196106,
+        "class": "bus",
+        "class_id": 5,
+        "detection_id": "60afbc40-c71d-43f9-99d0-d1fd379714da"
+      },
+      {
+        "x": 29,
+        "y": 144,
+        "width": 8,
+        "height": 16,
+        "confidence": 0.5840107798576355,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "96bde52d-f160-4c86-9037-beb925e3c761"
+      },
+      {
+        "x": 294,
+        "y": 102,
+        "width": 16,
+        "height": 10,
+        "confidence": 0.550870954990387,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "7fd8975b-6035-4369-9332-38bbc9dcdd6d"
+      },
+      {
+        "x": 7.5,
+        "y": 151.5,
+        "width": 7,
+        "height": 19,
+        "confidence": 0.5305768847465515,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "f9d96d9d-0f30-4813-9783-864529ae5167"
+      },
+      {
+        "x": 261.5,
+        "y": 98.5,
+        "width": 11,
+        "height": 9,
+        "confidence": 0.5160271525382996,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "f538f747-8210-4d6f-bd43-fa62232bb2d2"
+      },
+      {
+        "x": 262,
+        "y": 95,
+        "width": 12,
+        "height": 16,
+        "confidence": 0.36101770401000977,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "4e4bad7f-67eb-4c29-92e7-32318016b867"
+      },
+      {
+        "x": 17,
+        "y": 143,
+        "width": 6,
+        "height": 12,
+        "confidence": 0.3134726285934448,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "27e45541-62bc-482b-b235-f58df3ea8d47"
+      }
+    ]
+  },
+  {
+    "time": 0.017389831016771495,
+    "image": {
+      "width": 352,
+      "height": 240
+    },
+    "predictions": [
+      {
+        "x": 7,
+        "y": 164,
+        "width": 14,
+        "height": 22,
+        "confidence": 0.7388074994087219,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "e2b944dc-ea03-4d37-8182-fd920958aa71"
+      },
+      {
+        "x": 334,
+        "y": 159,
+        "width": 10,
+        "height": 34,
+        "confidence": 0.7145257592201233,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "4b645dda-f7fe-4d45-a73e-7a35ad0f2275"
+      },
+      {
+        "x": 346.5,
+        "y": 133,
+        "width": 7,
+        "height": 20,
+        "confidence": 0.6874265074729919,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "8dacb41c-e192-4bc0-9f77-2fddf89757d1"
+      },
+      {
+        "x": 296.5,
+        "y": 116.5,
+        "width": 31,
+        "height": 31,
+        "confidence": 0.6548729538917542,
+        "class": "bus",
+        "class_id": 5,
+        "detection_id": "ab282e5e-f226-46e5-99a9-a1817cc8ac1b"
+      },
+      {
+        "x": 31,
+        "y": 146.5,
+        "width": 8,
+        "height": 21,
+        "confidence": 0.6227405667304993,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "abb95e0b-ab53-45a4-a82a-32c397966c32"
+      },
+      {
+        "x": 20.5,
+        "y": 149,
+        "width": 7,
+        "height": 20,
+        "confidence": 0.6188769340515137,
+        "class": "person",
+        "class_id": 0,
+        "detection_id": "68667d18-de68-4c73-98fa-92312f59cd76"
+      },
+      {
+        "x": 266.5,
+        "y": 86,
+        "width": 7,
+        "height": 8,
+        "confidence": 0.4760825037956238,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "ea6b4f69-c70a-4b6d-addc-a7c4038e0d5e"
+      },
+      {
+        "x": 244.5,
+        "y": 82,
+        "width": 7,
+        "height": 8,
+        "confidence": 0.308968722820282,
+        "class": "car",
+        "class_id": 2,
+        "detection_id": "b0b300ee-7195-452c-b494-7638f17f0b18"
+      }
+    ]
+  }
+]
