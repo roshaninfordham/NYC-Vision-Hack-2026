@@ -22,9 +22,9 @@ gcloud run deploy "$SERVICE" \
   --region "$REGION" \
   --allow-unauthenticated \
   --memory 512Mi \
-  --set-env-vars "ROBOFLOW_MODEL=coco/24,GOOGLE_CLOUD_PROJECT=$PROJECT" \
-  ${ROBOFLOW_API_KEY:+--set-env-vars "ROBOFLOW_API_KEY=$ROBOFLOW_API_KEY"} \
-  ${GEMINI_API_KEY:+--set-env-vars "GEMINI_API_KEY=$GEMINI_API_KEY"}
+  --update-env-vars "ROBOFLOW_MODEL=coco/24,GOOGLE_CLOUD_PROJECT=$PROJECT" \
+  ${ROBOFLOW_API_KEY:+--update-env-vars "ROBOFLOW_API_KEY=$ROBOFLOW_API_KEY"} \
+  ${GEMINI_API_KEY:+--update-env-vars "GEMINI_API_KEY=$GEMINI_API_KEY"}
 
 echo ""
 echo "Deployed. Service URL:"
