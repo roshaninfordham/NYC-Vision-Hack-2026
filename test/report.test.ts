@@ -13,6 +13,21 @@ test("buildReportPrompt embeds camera name and timeline JSON", () => {
   assert.match(prompt, /clear \/ warning \/ blocked/);
 });
 
+test("buildReportPrompt: grounded adds image cross-check instructions", () => {
+  const plain = buildReportPrompt([], "Cam");
+  assert.doesNotMatch(plain, /SEE the current camera frame/);
+  const grounded = buildReportPrompt([], "Cam", { grounded: true });
+  assert.match(grounded, /SEE the current camera frame/);
+  assert.match(grounded, /correct any mislabeled vehicles/);
+  assert.match(grounded, /honest when the detector is wrong/);
+});
+
+test("buildReportPrompt: language option requests translation for 311", () => {
+  const prompt = buildReportPrompt([], "Cam", { language: "es" });
+  assert.match(prompt, /Write the report in this language: es/);
+  assert.match(prompt, /English translation for 311 filing/);
+});
+
 test("fallbackReport: empty timeline is honest and clear", () => {
   const report = fallbackReport([], "Test Cam");
   assert.match(report, /No vehicles/i);

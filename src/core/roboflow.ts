@@ -39,7 +39,7 @@ export interface DetectOptions {
   model?: string;
   /** API key. Default: env ROBOFLOW_API_KEY. */
   apiKey?: string;
-  /** Confidence threshold percent. Default 30. */
+  /** Confidence threshold percent. Default: env ROBOFLOW_CONFIDENCE or 40. */
   confidence?: number;
   /** Base endpoint override (testing). */
   endpoint?: string;
@@ -60,7 +60,10 @@ export async function detect(
   if (!apiKey) {
     throw new Error("ROBOFLOW_API_KEY is not set (env or opts.apiKey)");
   }
-  const confidence = opts.confidence ?? 30;
+  const envConf = Number(process.env.ROBOFLOW_CONFIDENCE);
+  const confidence =
+    opts.confidence ??
+    (Number.isFinite(envConf) && envConf > 0 && envConf <= 100 ? envConf : 40);
   const endpoint = opts.endpoint ?? "https://serverless.roboflow.com";
   const doFetch = opts.fetchImpl ?? fetch;
 

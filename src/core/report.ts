@@ -8,29 +8,57 @@ import type { TimelineEvent } from "./tracker.js";
 /** Seconds between sampled frames (app polls 1 frame / ~3 s). */
 export const SECONDS_PER_FRAME = 3;
 
+export interface ReportPromptOptions {
+  /** A current camera frame is attached — ask the model to cross-check it. */
+  grounded?: boolean;
+  /** Requested output language (BCP-47 or free text, e.g. "es", "Spanish"). */
+  language?: string;
+}
+
 /**
  * Prompt for Gemini: system-style instructions + the timeline JSON.
  * The model should answer with a short plain-English verdict.
+ * With `grounded`, the attached frame becomes evidence: the model must
+ * cross-check the detector instead of parroting it.
  */
 export function buildReportPrompt(
   timeline: TimelineEvent[],
-  cameraName: string
+  cameraName: string,
+  opts: ReportPromptOptions = {}
 ): string {
-  return [
+  const lines = [
     "You are CurbWatch, an agent that watches NYC DOT traffic cameras for vehicles blocking bike and bus lanes.",
     `Below is the detection timeline for the monitored lane zone at camera "${cameraName}".`,
     `Each event is one sampled frame (frames are ~${SECONDS_PER_FRAME} seconds apart) where a vehicle's footprint was inside the lane zone.`,
     '"dwellFrames" counts CONSECUTIVE frames the same vehicle stayed in the zone; "blocking" is true once it dwelled 3+ frames (roughly 9+ seconds, i.e. stopped, not passing through).',
     "",
+  ];
+  if (opts.grounded) {
+    lines.push(
+      "You can SEE the current camera frame — it is attached to this message. Cross-check the detector's timeline against the image:",
+      "- correct any mislabeled vehicles (e.g. the detector said truck but the image shows a school bus);",
+      "- describe the actual scene and lane situation concretely (colors, vehicle types, lane markings);",
+      "- state whether the flagged blockage is real. Be honest when the detector is wrong.",
+      ""
+    );
+  }
+  lines.push(
     "Write a 2-4 sentence plain-English verdict of lane blockage at this camera, suitable for a 311 report:",
     "- what is blocking (vehicle class), and how long it has been there (convert frames to seconds, ~3 s per frame);",
     "- a severity rating: exactly one of clear / warning / blocked;",
     "- a suggested action (e.g. no action needed, keep monitoring, report to 311).",
-    "Be honest: if nothing is blocking, say so plainly. Do not invent details not present in the timeline. Respond with prose only, no markdown.",
-    "",
-    "Timeline JSON:",
-    JSON.stringify(timeline),
-  ].join("\n");
+    "Be honest: if nothing is blocking, say so plainly. Do not invent details not supported by the timeline" +
+      (opts.grounded ? " or the image" : "") +
+      ". Respond with prose only, no markdown."
+  );
+  if (opts.language) {
+    lines.push(
+      "",
+      `Write the report in this language: ${opts.language}. Then append an English translation for 311 filing.`
+    );
+  }
+  lines.push("", "Timeline JSON:", JSON.stringify(timeline));
+  return lines.join("\n");
 }
 
 /** Templated plain-English report used when no LLM is available. */

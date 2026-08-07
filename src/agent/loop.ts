@@ -45,14 +45,14 @@ export const agentFunctionDeclarations: FunctionDeclaration[] = [
   {
     name: "search_cameras",
     description:
-      "Search the NYC DOT traffic camera list by name and/or borough. Returns up to 10 matching cameras with id, name and area. Use this to find a camera before analyzing it.",
+      "Search the NYC DOT traffic camera list by name and/or borough. The query is split into terms and cameras matching ANY term are returned, ranked by how many terms match (up to 10, with id, name and area). Use cross-street terms, e.g. 'Broadway 42 St'.",
     parameters: {
       type: "object",
       properties: {
         query: {
           type: "string",
           description:
-            "Substring matched against camera names, e.g. a street like 'Canal St' or 'Broadway'.",
+            "Space-separated cross-street terms matched against camera names, e.g. 'Canal St' or 'Broadway 42'.",
         },
         borough: {
           type: "string",
@@ -102,6 +102,8 @@ export function buildAgentSystemPrompt(ctx: AgentContext): string {
     "You help people find cameras, see what is happening on a street right now, and assess whether vehicles are blocking bike or bus lanes.",
     "Parse the user's intent and reach their goal using the provided tools; prefer tool results over guessing.",
     "Live detections (analyze_camera) cost credits — only call it when the user actually wants current street activity.",
+    "NYC DOT cameras are named by cross-streets (e.g. 'Broadway @ 42 St'), not landmarks. Translate landmarks into their cross-streets before searching (Times Square → Broadway @ 42 St / 7 Ave @ 42 St; Union Square → Broadway @ 14 St; Columbus Circle → 8 Ave @ 59 St; use your NYC knowledge for others), and try 2-3 alternative queries before concluding nothing exists.",
+    "Always respond in the same language as the user's message. If the report requester's language is known from the session's chat history, write the report in that language with an English translation appended for 311 filing.",
     watching,
     "Answer concisely and factually in plain text. If you cannot help with the available tools, say so honestly.",
   ].join(" ");

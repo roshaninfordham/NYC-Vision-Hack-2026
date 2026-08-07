@@ -3,19 +3,28 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import {
   LaneTracker,
+  VEHICLE_CLASSES,
   type Polygon,
   type RoboflowResult,
   type UpdateResult,
   buildReportPrompt,
+  defaultMinTrackConfidence,
   denormalize,
   detect,
   fallbackReport,
+  footprint,
+  pointInPolygon,
 } from "./core/index.js";
-import { generateContent, hasGeminiCredentials } from "./core/gemini.js";
+import {
+  type Part,
+  generateContent,
+  hasGeminiCredentials,
+} from "./core/gemini.js";
 import {
   type AgentTools,
   runAgentLoop,
 } from "./agent/loop.js";
+import { searchCameras } from "./agent/search.js";
 import { readTrace, trace } from "./trace.js";
 
 export const api = new Hono();
@@ -287,6 +296,9 @@ api.post("/analyze", async (c) => {
     resultSummary: `status=${status} vehicles=${result.all.length} inZone=${result.inZone.length} blocking=${result.blocking.length} persons=${personCount} replay=${Boolean(replay)}`,
   });
 
+  // Low-confidence vehicles are excluded from tracking/blocking decisions
+  // but still shown to the user with their (visibly low) confidence.
+  const minConf = defaultMinTrackConfidence();
   const responseDetections = [
     ...result.all.map((t) => ({
       class: t.class,
@@ -296,6 +308,16 @@ api.post("/analyze", async (c) => {
       blocking: t.blocking,
       dwellFrames: t.dwellFrames,
     })),
+    ...detections
+      .filter((d) => VEHICLE_CLASSES.has(d.class) && d.confidence < minConf)
+      .map((d) => ({
+        class: d.class,
+        confidence: d.confidence,
+        box: d.box,
+        inZone: pointInPolygon(footprint(d.box), zonePx),
+        blocking: false,
+        dwellFrames: 0,
+      })),
     ...detections
       .filter((d) => d.class === "person")
       .map((d) => ({
@@ -323,26 +345,54 @@ api.post("/analyze", async (c) => {
 // Reports — Gemini (key or Vertex identity) with templated fallback.
 // ---------------------------------------------------------------------------
 
+const REPORT_SYSTEM_INSTRUCTION =
+  "You are CurbWatch, an NYC street-operations agent writing lane-blockage verdicts from DOT traffic cameras. " +
+  "Always respond in the same language as the user's message. If the report requester's language is known from the session's chat history, write the report in that language with an English translation appended for 311 filing. Never append a translation when the report is already in English.";
+
 async function sessionReport(
-  session: Session
-): Promise<{ report: string; source: "gemini" | "vertex" | "fallback" }> {
+  session: Session,
+  opts: { language?: string } = {}
+): Promise<{
+  report: string;
+  source: "gemini" | "vertex" | "fallback";
+  grounded: boolean;
+}> {
   const timeline = session.tracker.timeline();
-  const prompt = buildReportPrompt(timeline, session.cameraName);
+  const grounded = session.lastFrame !== null;
+  const prompt = buildReportPrompt(timeline, session.cameraName, {
+    grounded,
+    language: opts.language,
+  });
   try {
     if (hasGeminiCredentials()) {
-      const res = await generateContent([
-        { role: "user", parts: [{ text: prompt }] },
-      ]);
-      if (res.text) return { report: res.text, source: res.source };
+      // Multimodal grounding: attach the session's last frame so the model
+      // cross-checks the detector against what is actually visible.
+      const parts: Part[] = [{ text: prompt }];
+      if (session.lastFrame) {
+        parts.push({
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: session.lastFrame.toString("base64"),
+          },
+        });
+      }
+      const res = await generateContent([{ role: "user", parts }], {
+        systemInstruction: REPORT_SYSTEM_INSTRUCTION,
+      });
+      if (res.text) return { report: res.text, source: res.source, grounded };
     }
   } catch {
     // fall through to templated report
   }
-  return { report: fallbackReport(timeline, session.cameraName), source: "fallback" };
+  return {
+    report: fallbackReport(timeline, session.cameraName),
+    source: "fallback",
+    grounded: false,
+  };
 }
 
 api.post("/report", async (c) => {
-  let body: { sessionId?: string };
+  let body: { sessionId?: string; language?: string };
   try {
     body = await c.req.json();
   } catch {
@@ -352,15 +402,23 @@ api.post("/report", async (c) => {
   const session = sessions.get(body.sessionId);
   if (!session) return c.json({ error: "unknown session" }, 404);
 
-  const { report, source } = await sessionReport(session);
+  const { report, source, grounded } = await sessionReport(session, {
+    language: typeof body.language === "string" ? body.language : undefined,
+  });
   await trace({
     sessionId: body.sessionId,
     type: "verdict",
     status: session.lastStatus ?? "clear",
     report,
     source,
+    grounded,
   });
-  return c.json({ report, source, generatedAt: new Date().toISOString() });
+  return c.json({
+    report,
+    source,
+    grounded,
+    generatedAt: new Date().toISOString(),
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -417,19 +475,14 @@ function buildAgentTools(body: Required<Pick<AgentBody, "sessionId">> & AgentBod
   return {
     search_cameras: async (args) => {
       const { cameras } = await getCameras();
-      const query = typeof args.query === "string" ? args.query.toLowerCase() : "";
-      const borough =
-        typeof args.borough === "string" ? args.borough.toLowerCase() : "";
-      let matches = cameras;
-      if (query) {
-        matches = matches.filter((cam) => cam.name.toLowerCase().includes(query));
-      }
-      if (borough) {
-        matches = matches.filter((cam) => cam.area.toLowerCase() === borough);
-      }
+      const result = searchCameras(
+        cameras,
+        typeof args.query === "string" ? args.query : undefined,
+        typeof args.borough === "string" ? args.borough : undefined
+      );
       return {
-        totalMatches: matches.length,
-        cameras: matches.slice(0, 10).map(({ id, name, area }) => ({ id, name, area })),
+        totalMatches: result.totalMatches,
+        cameras: result.cameras.map(({ id, name, area }) => ({ id, name, area })),
       };
     },
 
@@ -489,15 +542,16 @@ function buildAgentTools(body: Required<Pick<AgentBody, "sessionId">> & AgentBod
     generate_report: async () => {
       const session = sessions.get(body.sessionId);
       if (!session) return { error: "no monitoring session to report on" };
-      const { report, source } = await sessionReport(session);
+      const { report, source, grounded } = await sessionReport(session);
       await trace({
         sessionId: body.sessionId,
         type: "verdict",
         status: session.lastStatus ?? "clear",
         report,
         source,
+        grounded,
       });
-      return { report, source };
+      return { report, source, grounded };
     },
   };
 }

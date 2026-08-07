@@ -22,6 +22,12 @@ import {
 
 export const VEHICLE_CLASSES = new Set(["car", "truck", "bus", "motorcycle"]);
 
+/** Blocking-decision confidence floor: env TRACK_MIN_CONFIDENCE or 0.45. */
+export function defaultMinTrackConfidence(): number {
+  const envMin = Number(process.env.TRACK_MIN_CONFIDENCE);
+  return Number.isFinite(envMin) && envMin >= 0 && envMin <= 1 ? envMin : 0.45;
+}
+
 export interface Detection {
   class: string;
   confidence: number;
@@ -65,6 +71,12 @@ export interface LaneTrackerOptions {
   blockingFrames?: number;
   /** Max timeline events retained. Default 500. */
   maxEvents?: number;
+  /**
+   * Vehicles below this confidence are NOT tracked for blocking decisions
+   * (callers may still display them). Default: env TRACK_MIN_CONFIDENCE
+   * or 0.45.
+   */
+  minTrackConfidence?: number;
 }
 
 export class LaneTracker {
@@ -72,6 +84,7 @@ export class LaneTracker {
   private readonly iouThreshold: number;
   private readonly blockingFrames: number;
   private readonly maxEvents: number;
+  private readonly minTrackConfidence: number;
 
   private tracks: TrackedObject[] = [];
   private events: TimelineEvent[] = [];
@@ -87,6 +100,7 @@ export class LaneTracker {
     this.iouThreshold = opts.iouThreshold ?? 0.3;
     this.blockingFrames = opts.blockingFrames ?? 3;
     this.maxEvents = opts.maxEvents ?? 500;
+    this.minTrackConfidence = opts.minTrackConfidence ?? defaultMinTrackConfidence();
   }
 
   /** Replace the lane polygon (pixel coords). Safe to call every frame. */
@@ -105,7 +119,12 @@ export class LaneTracker {
   update(detections: Detection[], ts: number): UpdateResult {
     this.frameCount++;
     this.personCount = detections.filter((d) => d.class === "person").length;
-    const vehicles = detections.filter((d) => VEHICLE_CLASSES.has(d.class));
+    // Low-confidence vehicles are noise for blocking decisions — skip them
+    // here; callers can still display them straight from the detection list.
+    const vehicles = detections.filter(
+      (d) =>
+        VEHICLE_CLASSES.has(d.class) && d.confidence >= this.minTrackConfidence
+    );
 
     // All candidate (track, detection) pairs above the IoU threshold,
     // matched greedily best-first so each side is used at most once.

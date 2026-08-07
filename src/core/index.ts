@@ -17,6 +17,7 @@ export {
 
 export {
   VEHICLE_CLASSES,
+  defaultMinTrackConfidence,
   type Detection,
   type TrackedObject,
   type TimelineEvent,
@@ -35,6 +36,7 @@ export {
 
 export {
   SECONDS_PER_FRAME,
+  type ReportPromptOptions,
   buildReportPrompt,
   fallbackReport,
 } from "./report.js";

@@ -109,6 +109,35 @@ test("non-vehicle, non-person classes are ignored", () => {
   assert.equal(t.personCount, 0);
 });
 
+test("vehicles below min tracking confidence are ignored for blocking", () => {
+  const t = new LaneTracker({ zone }); // default floor 0.45
+  const lowConf: Detection = {
+    class: "car",
+    confidence: 0.39,
+    box: { x: 50, y: 50, width: 40, height: 40 },
+  };
+  for (const ts of [0, 3000, 6000, 9000]) {
+    const r = t.update([lowConf], ts);
+    assert.equal(r.all.length, 0);
+    assert.equal(r.blocking.length, 0);
+  }
+  // At/above the floor it is tracked normally.
+  const ok = t.update([car(50, 50)], 12000);
+  assert.equal(ok.all.length, 1);
+});
+
+test("minTrackConfidence option overrides the default floor", () => {
+  const strict = new LaneTracker({ zone, minTrackConfidence: 0.95 });
+  const r = strict.update([car(50, 50)], 0); // car() has confidence 0.9
+  assert.equal(r.all.length, 0);
+  const lax = new LaneTracker({ zone, minTrackConfidence: 0 });
+  const r2 = lax.update(
+    [{ class: "car", confidence: 0.1, box: { x: 50, y: 50, width: 40, height: 40 } }],
+    0
+  );
+  assert.equal(r2.all.length, 1);
+});
+
 test("timeline records in-zone events with dwell and blocking", () => {
   const t = new LaneTracker({ zone });
   t.update([car(50, 50)], 0);

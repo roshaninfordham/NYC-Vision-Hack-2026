@@ -19,7 +19,15 @@ export interface FunctionCallPart {
 export interface FunctionResponsePart {
   functionResponse: { name: string; response: Record<string, unknown> };
 }
-export type Part = TextPart | FunctionCallPart | FunctionResponsePart;
+/** Inline media (e.g. a camera frame) for multimodal grounding. */
+export interface InlineDataPart {
+  inlineData: { mimeType: string; data: string };
+}
+export type Part =
+  | TextPart
+  | FunctionCallPart
+  | FunctionResponsePart
+  | InlineDataPart;
 
 export interface Content {
   role: "user" | "model";
